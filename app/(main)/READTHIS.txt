@@ -1,0 +1,1 @@
+This folder (main) is supposed to house all the main functionality in the dashboard and the main application

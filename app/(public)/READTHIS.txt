@@ -1,0 +1,2 @@
+This folder (public) is a low priority folder in which we can house public displays if we ever want the user to share their todo list to the 
+web. and in that case this folder will handle that functionality.
