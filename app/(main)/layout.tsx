@@ -1,17 +1,19 @@
-import Navbar from "@/app/(marketing)/_components/Navbar"
+import Sidebar from "@/app/(main)/_components/sidebar"
 
 export default function MainLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode
+  children: React.ReactNode
 }) {
-    // Temporarily removed auth protection to view the app directly
-    return (
-        <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-zinc-950">
-            <Navbar />
-            <main className="flex-1 flex flex-col max-w-5xl mx-auto w-full p-4 sm:p-8">
-                {children}
-            </main>
+  // Temporarily removed auth protection to view the app directly
+  return (
+    <div className="h-full flex min-h-screen bg-white dark:bg-[#191919]">
+      <Sidebar />
+      <main className="flex-1 h-full overflow-y-auto">
+        <div className="max-w-5xl mx-auto w-full p-4 sm:p-8">
+          {children}
         </div>
-    )
+      </main>
+    </div>
+  )
 }

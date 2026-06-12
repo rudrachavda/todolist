@@ -1,4 +1,4 @@
-import TodoList from "@/app/(main)/_components/TodoList"
+import TodoList from "@/app/(main)/_components/dashboard"
 
 export default function DashboardPage() {
   return (
