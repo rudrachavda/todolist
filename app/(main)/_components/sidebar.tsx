@@ -1,7 +1,7 @@
 "use client";
 
 import { ElementRef, useRef, useState } from "react";
-import { Search, Calendar, CalendarDays, Inbox, Check, Plus, Trash2 } from "lucide-react";
+import { Calendar, CalendarDays, Inbox, Check, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -53,18 +53,8 @@ export const Sidebar = () => {
       )}
     >
       <div className="flex-1 p-4">
-        {/* Search Bar */}
-        <div className="mb-5 flex items-center gap-x-2 rounded-md bg-[#2c2c2e] px-2 py-1.5 text-neutral-400 shadow-inner">
-          <Search className="h-4 w-4 shrink-0" />
-          <input
-            type="text"
-            placeholder="Search"
-            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-500"
-          />
-        </div>
-
-        {/* 2x2 Smart Lists Grid */}
-        <div className="mb-6 grid grid-cols-2 gap-3">
+        {/* 2x2 Smart Lists Grid - Now at the very top */}
+        <div className="mb-6 grid grid-cols-2 gap-3 pt-2">
           <Link href="/today" className="flex h-20 flex-col justify-between rounded-xl bg-[#2c2c2e] p-3 transition hover:bg-neutral-800 shadow-sm border border-neutral-800/50">
             <div className="flex items-center justify-between">
               <div className="flex h-7 w-7 items-center justify-center rounded-full bg-blue-500 shadow-sm"><Calendar className="h-4 w-4 text-white" /></div>
@@ -105,7 +95,6 @@ export const Sidebar = () => {
             <Plus className="h-4 w-4 opacity-0 transition group-hover:opacity-100 hover:text-white" />
           </div>
           <div className="px-2 py-1 text-sm text-neutral-400">
-            {/* We will map over the SQLite db.lists here shortly */}
             No lists found.
           </div>
         </div>

@@ -1,69 +1,35 @@
-"use client";
+import { Search, Plus, MoreHorizontal } from "lucide-react";
 
-import { useQuery } from "convex/react";
-import { useParams } from "next/navigation";
-import { MenuIcon } from "lucide-react";
-
-import { api } from "@/convex/_generated/api";
-import { Id } from "@/convex/_generated/dataModel";
-
-import { Title } from "./title";
-import { Banner } from "./banner";
-import { Menu } from "./menu";
-import { Publish } from "./publish";
-
-interface NavbarProps {
-  isCollapsed: boolean;
-  onResetWidth: () => void;
-};
-
-export const Navbar = ({
-  isCollapsed,
-  onResetWidth
-}: NavbarProps) => {
-  const params = useParams();
-  const rawId = params.documentId as string;
-  const documentId = rawId?.split('-')[0];
-  const document = useQuery(api.documents.getById, {
-    documentId: documentId as Id<"documents">,
-  });
-
-  if (document === undefined) {
-    return (
-      <nav className="bg-background dark:bg-[#1F1F1F] px-3 py-2 w-full flex items-center justify-between">
-        <Title.Skeleton />
-        <div className="flex items-center gap-x-2">
-          <Menu.Skeleton />
-        </div>
-      </nav>
-    )
-  }
-
-  if (document === null) {
-    return null;
-  }
-
+export const Navbar = () => {
   return (
-    <>
-      <nav className="bg-background/80 dark:bg-[#191919]/80 border-b border-border backdrop-blur-md px-3 py-2 w-full flex items-center gap-x-4">
-        {isCollapsed && (
-          <MenuIcon
-            role="button"
-            onClick={onResetWidth}
-            className="h-6 w-6 text-muted-foreground"
+    <header className="flex h-14 w-full shrink-0 items-center justify-between border-b border-neutral-800 bg-[#191919] px-6">
+      {/* Left side (Empty for now, could be used for breadcrumbs or active list title) */}
+      <div className="flex items-center">
+        {/* Placeholder for future context */}
+      </div>
+
+      {/* Right side controls */}
+      <div className="flex items-center gap-x-4">
+        {/* Search Bar */}
+        <div className="flex w-64 items-center gap-x-2 rounded-md bg-[#2c2c2e] px-2 py-1.5 text-neutral-400 shadow-inner transition focus-within:ring-1 focus-within:ring-neutral-600">
+          <Search className="h-4 w-4 shrink-0" />
+          <input
+            type="text"
+            placeholder="Search"
+            className="w-full bg-transparent text-sm outline-none placeholder:text-neutral-500 text-white"
           />
-        )}
-        <div className="flex items-center justify-between w-full">
-          <Title initialData={document} />
-          <div className="flex items-center gap-x-2">
-            <Publish initialData={document} />
-            <Menu documentId={document._id} />
-          </div>
         </div>
-      </nav>
-      {document.isArchived && (
-        <Banner documentId={document._id} />
-      )}
-    </>
-  )
-}
+
+        {/* Utility Actions */}
+        <div className="flex items-center gap-x-3 border-l border-neutral-800 pl-4">
+          <button className="text-neutral-400 transition hover:text-white">
+            <Plus className="h-5 w-5" />
+          </button>
+          <button className="text-neutral-400 transition hover:text-white">
+            <MoreHorizontal className="h-5 w-5" />
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+};
