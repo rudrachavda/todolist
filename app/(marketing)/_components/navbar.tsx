@@ -1,59 +1,29 @@
-// "use client";
+import Link from "next/link";
+import { Logo } from "./logo";
 
-// import { useConvexAuth } from "convex/react";
-// import { SignInButton, UserButton } from "@clerk/clerk-react";
-// import Link from "next/link";
+export const Navbar = () => {
+  return (
+    <header className="fixed top-0 z-50 w-full border-b border-neutral-800 bg-[#000000]/80 p-6 backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
+        <Logo />
 
-// import { useScrollTop } from "@/hooks/use-scroll-top";
-// import { ModeToggle } from "@/components/mode-toggle";
-// import { Button } from "@/components/ui/button";
-// import { Spinner } from "@/components/spinner";
-// import { cn } from "@/lib/utils";
+        {/* Center Links - Hidden on smaller screens for a cleaner mobile layout */}
+        <nav className="hidden items-center gap-x-8 text-sm font-medium text-neutral-400 md:flex">
+          <Link href="#" className="transition hover:text-white">Features</Link>
+          <Link href="#" className="transition hover:text-white">Performance</Link>
+          <Link href="#" className="transition hover:text-white">Security</Link>
+        </nav>
 
-// import { Logo } from "./logo";
-
-// export const Navbar = () => {
-//   const { isAuthenticated, isLoading } = useConvexAuth();
-//   const scrolled = useScrollTop();
-
-//   return (
-//     <div className={cn(
-//       "z-50 bg-background dark:bg-[#000000] fixed top-0 flex items-center w-full p-6",
-//       scrolled && "border-b shadow-sm"
-//     )}>
-//       <Logo />
-//       <div className="md:ml-auto md:justify-end justify-between w-full flex items-center gap-x-2">
-//         {isLoading && (
-//           <Spinner />
-//         )}
-//         {!isAuthenticated && !isLoading && (
-//           <>
-//             <SignInButton mode="modal">
-//               <Button variant="ghost" size="sm">
-//                 Log in
-//               </Button>
-//             </SignInButton>
-//             <SignInButton mode="modal">
-//               <Button size="sm">
-//                 Get Better Notes free
-//               </Button>
-//             </SignInButton>
-//           </>
-//         )}
-//         {isAuthenticated && !isLoading && (
-//           <>
-//             <Button variant="ghost" size="sm" asChild>
-//               <Link href="/documents">
-//                 Enter Better Notes
-//               </Link>
-//             </Button>
-//             <UserButton
-//               afterSignOutUrl="/"
-//             />
-//           </>
-//         )}
-//         <ModeToggle />
-//       </div>
-//     </div>
-//   )
-// }
+        {/* CTA Button */}
+        <div className="flex items-center gap-x-4">
+          <Link
+            href="/today"
+            className="rounded-full bg-white px-5 py-2.5 text-sm font-semibold text-black transition hover:bg-neutral-200"
+          >
+            Enter Workspace
+          </Link>
+        </div>
+      </div>
+    </header>
+  );
+};

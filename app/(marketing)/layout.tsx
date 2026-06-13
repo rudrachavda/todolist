@@ -1,4 +1,4 @@
-// import { Navbar } from "./_components/navbar";
+import { Navbar } from "./_components/navbar";
 
 const MarketingLayout = ({
     children
@@ -7,8 +7,8 @@ const MarketingLayout = ({
 }) => {
     return (
         <div className="h-full dark:bg-[#000000]">
-            {/* <Navbar /> */}
-            <main className="h-full pt-40">
+            <Navbar />
+            <main className="h-full">
                 {children}
             </main>
         </div>
