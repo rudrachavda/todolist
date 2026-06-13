@@ -1,2 +1,0 @@
-This folder (marketing) is supposed to house all the marketing functionality, this includes the landing page and hero page and navbar in
-which we will use to sign into the application.
