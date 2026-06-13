@@ -1,9 +1,15 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
 export const metadata: Metadata = {
-  title: "TaskFlow",
-  description: "A production-level Next.js full-stack to do list.",
+  title: "Reminders",
+  description: "Intuitive Lists",
 };
 
 export default function RootLayout({
@@ -12,10 +18,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full">
-      <body className="antialiased min-h-screen bg-white dark:bg-zinc-950 text-gray-900 dark:text-gray-100 flex flex-col h-full">
-        {children}
-      </body>
+    <html
+      lang="en"
+      className={`${inter.variable} h-full antialiased no-scrollbar`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
 }

@@ -1,1 +1,0 @@
-// Self explanatory, this is our landing page for new users and navigation from the marketing aspects for this application.

@@ -1,1 +1,0 @@
-// Search and add new button (very basic navbar)

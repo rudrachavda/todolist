@@ -1,75 +1,19 @@
-import {
-  sqliteTable,
-  text,
-  integer,
-  primaryKey,
-} from "drizzle-orm/sqlite-core"
-import type { AdapterAccountType } from "next-auth/adapters"
+import { sqliteTable, text, integer } from 'drizzle-orm/sqlite-core';
 
-// --- NextAuth Required Tables ---
+export const lists = sqliteTable('lists', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    name: text('name').notNull(),
+    color: text('color'),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
+});
 
-export const users = sqliteTable("user", {
-  id: text("id")
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  name: text("name"),
-  email: text("email").unique(),
-  emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
-  image: text("image"),
-})
-
-export const accounts = sqliteTable(
-  "account",
-  {
-    userId: text("userId")
-      .notNull()
-      .references(() => users.id, { onDelete: "cascade" }),
-    type: text("type").$type<AdapterAccountType>().notNull(),
-    provider: text("provider").notNull(),
-    providerAccountId: text("providerAccountId").notNull(),
-    refresh_token: text("refresh_token"),
-    access_token: text("access_token"),
-    expires_at: integer("expires_at"),
-    token_type: text("token_type"),
-    scope: text("scope"),
-    id_token: text("id_token"),
-    session_state: text("session_state"),
-  },
-  (account) => ({
-    compoundKey: primaryKey({
-      columns: [account.provider, account.providerAccountId],
-    }),
-  })
-)
-
-export const sessions = sqliteTable("session", {
-  sessionToken: text("sessionToken").primaryKey(),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-})
-
-export const verificationTokens = sqliteTable(
-  "verificationToken",
-  {
-    identifier: text("identifier").notNull(),
-    token: text("token").notNull(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
-  },
-  (vt) => ({
-    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
-  })
-)
-
-// --- Application Specific Tables ---
-
-export const todos = sqliteTable("todo", {
-  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
-  userId: text("userId")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  title: text("title").notNull(),
-  completed: integer("completed", { mode: "boolean" }).notNull().default(false),
-  createdAt: integer("createdAt", { mode: "timestamp_ms" }).$defaultFn(() => new Date()),
-})
+export const todos = sqliteTable('todos', {
+    id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+    // The cascade delete ensures if a list goes, its todos go too
+    listId: text('listId').references(() => lists.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    notes: text('notes'),
+    completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
+    dueDate: integer('dueDate', { mode: 'timestamp_ms' }),
+    createdAt: integer('createdAt', { mode: 'timestamp_ms' }).$defaultFn(() => new Date()),
+});
