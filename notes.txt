@@ -33,7 +33,7 @@ list:
 
 item:
 - this is the actual to do item that the user can create
-- it has text, date, and a simple integer tracker to check completion (0 or 1)
+- it should store text, date, and a simple integer tracker to check completion (0 or 1)
 
 
 keep the UI super minimal and basic.
