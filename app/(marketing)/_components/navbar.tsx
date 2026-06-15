@@ -27,7 +27,7 @@ export const Navbar = () => {
             Get Started
           </Link>
         </Button>
-        <div className="pl-2 border-l border-border">
+        <div className="pl-2 border-l border-border z-50">
           <ModeToggle />
         </div>
       </div>
