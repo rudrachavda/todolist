@@ -1,0 +1,71 @@
+The purpose of this application:
+- to learn full stack development (mainly backend)
+- to make a clean apple reminders clone application
+
+The stack is:
+- Typescript, NextJS, tailwind
+- Drizzle ORM, SQLite
+
+
+
+Some things to note,
+there are fundamental components that are used in apple reminders, and there are four main "filters" that are applied to these lists.
+
+Today "filter"
+- checks the lists and sees which items are due today and only displays them
+
+All "filter"
+- checks the items in all lists and displays them
+
+Completed "filter"
+- shows completed items
+
+Scheduled "filter"
+- shows any future items 
+
+
+
+so the first fundamental component is called a 
+
+list:
+- this has a name/color/icon
+- and this stores the next component called items
+
+item:
+- this is the actual to do item that the user can create
+- it has text, date, and a simple integer tracker to check completion (0 or 1)
+
+
+keep the UI super minimal and basic.
+
+I have provided a skeleton of a note taking application which is very overkill in the amount of components there are compared to what we are trying to do
+
+fonts that I want to use:
+
+inter
+space grotesk
+halo grotesk
+SF mono
+
+Text dark mode for numbers:
+#646464
+#a1a1a1
+
+Colors:
+#b64400
+#9659b9
+#ee98b7
+#0069cc
+#50aef6
+#abcdef
+#169b40
+#0a461d
+#fcd609
+#fc9601
+#fc3e2f
+
+app/(main) is our main components
+
+app/(marketing) is our landing and onboarding page for new users
+
+app/(public) can be ignored for now and used later for shareable lists

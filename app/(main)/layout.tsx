@@ -7,7 +7,7 @@ import { redirect } from "next/navigation";
 import { Spinner } from "@/components/spinner";
 import { SearchCommand } from "@/components/search-command";
 
-import { Navigation } from "./_components/navigation";
+import { Navigation } from "./_components/sidebar";
 
 const MainLayout = ({
   children
