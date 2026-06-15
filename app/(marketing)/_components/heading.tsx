@@ -1,26 +1,46 @@
-import Link from "next/link";
+"use client";
+
+import { useConvexAuth } from "convex/react";
 import { ArrowRight } from "lucide-react";
+import { SignInButton } from "@clerk/clerk-react";
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/spinner";
 
 export const Heading = () => {
-  return (
-    <div className="max-w-3xl space-y-4 mt-32">
-      <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white tracking-tight">
-        Your life's work, <br className="hidden md:block" />
-        <span className="text-blue-500">beautifully organized.</span>
-      </h1>
-      <h3 className="text-base sm:text-xl md:text-2xl font-medium text-neutral-400 mt-6 mb-10">
-        TaskFlow is a production-grade, local-first task manager built for speed, focus, and seamless productivity.
-      </h3>
+  const { isAuthenticated, isLoading } = useConvexAuth();
 
-      <div className="pt-8 flex items-center justify-center">
-        <Link
-          href="/today"
-          className="group flex items-center gap-x-2 bg-blue-600 text-white px-8 py-4 rounded-full text-sm font-semibold hover:bg-blue-700 transition"
-        >
-          Enter Workspace
-          <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
-        </Link>
-      </div>
+  return (
+    <div className="max-w-3xl space-y-4">
+      <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold">
+        Your Ideas, Documents, & Plans. Unified. Welcome to <span className="underline">Better Notes</span>
+      </h1>
+      <h3 className="text-base sm:text-xl md:text-2xl font-medium">
+        Better Notes is the connected workspace where <br />
+        better, faster work happens.
+      </h3>
+      {isLoading && (
+        <div className="w-full flex items-center justify-center">
+          <Spinner size="lg" />
+        </div>
+      )}
+      {isAuthenticated && !isLoading && (
+        <Button asChild>
+          <Link href="/documents">
+            Enter Better Notes
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Link>
+        </Button>
+      )}
+      {!isAuthenticated && !isLoading && (
+        <SignInButton mode="modal">
+          <Button>
+            Get Better Notes free
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </SignInButton>
+      )}
     </div>
-  );
-};
+  )
+}

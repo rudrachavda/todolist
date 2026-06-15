@@ -1,22 +1,42 @@
-import { Sidebar } from "./_components/sidebar";
-import { Navbar } from "./_components/navbar";
+"use client";
+// Text Editor Style
 
-export default function MainLayout({
-    children,
+import { useConvexAuth } from "convex/react";
+import { redirect } from "next/navigation";
+
+import { Spinner } from "@/components/spinner";
+import { SearchCommand } from "@/components/search-command";
+
+import { Navigation } from "./_components/navigation";
+
+const MainLayout = ({
+  children
 }: {
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="flex h-screen w-full overflow-hidden bg-[#191919] text-neutral-200">
-            <Sidebar />
+  children: React.ReactNode;
+}) => {
+  const { isAuthenticated, isLoading } = useConvexAuth();
 
-            {/* Right side container */}
-            <div className="flex flex-1 flex-col overflow-hidden">
-                <Navbar />
-                <main className="flex-1 overflow-y-auto">
-                    {children}
-                </main>
-            </div>
-        </div>
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <Spinner size="lg" />
+      </div>
     );
+  }
+
+  if (!isAuthenticated) {
+    return redirect("/");
+  }
+
+  return (
+    <div className="h-full flex dark:bg-[#191919]">
+      <Navigation />
+      <main className="flex-1 h-full overflow-y-auto">
+        <SearchCommand />
+        {children}
+      </main>
+    </div>
+  );
 }
+
+export default MainLayout;
