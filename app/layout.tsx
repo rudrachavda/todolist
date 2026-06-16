@@ -6,7 +6,10 @@ import { ThemeProvider } from '@/components/providers/theme-provider'
 
 import './globals.css'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
 
 export const metadata: Metadata = {
   title: 'Reminders',
