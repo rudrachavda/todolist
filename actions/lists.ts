@@ -41,3 +41,10 @@ export async function updateList(id: string, values: Partial<{ name: string, col
   revalidatePath(`/lists/${id}`);
   revalidatePath("/documents");
 }
+
+export async function deleteList(id: string) {
+  await db.delete(lists)
+    .where(eq(lists.id, id));
+    
+  revalidatePath("/documents");
+}

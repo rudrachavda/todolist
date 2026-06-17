@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getDeletedItems, restoreItem } from "@/actions/items";
+import { getDeletedItems, restoreItem, permanentlyDeleteItem } from "@/actions/items";
 import { Item } from "@/db/schema";
 import { Trash2, Undo2 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -32,6 +32,19 @@ const RecentlyDeletedPage = () => {
       loading: "Restoring reminder...",
       success: "Reminder restored!",
       error: "Failed to restore reminder."
+    });
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    const promise = permanentlyDeleteItem(id)
+      .then(() => {
+        setItems(prev => prev.filter(item => item.id !== id));
+      });
+
+    toast.promise(promise, {
+      loading: "Deleting permanently...",
+      success: "Reminder deleted forever",
+      error: "Failed to delete reminder"
     });
   };
 
@@ -68,13 +81,22 @@ const RecentlyDeletedPage = () => {
                 Deleted on {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "unknown date"}
               </p>
             </div>
-            <button
-              onClick={() => handleRestore(item.id)}
-              className="opacity-0 group-hover:opacity-100 transition p-2 hover:bg-secondary rounded-full"
-              title="Restore"
-            >
-              <Undo2 className="h-5 w-5 text-blue-500" />
-            </button>
+            <div className="flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition">
+              <button
+                onClick={() => handleRestore(item.id)}
+                className="p-2 hover:bg-secondary rounded-full"
+                title="Restore"
+              >
+                <Undo2 className="h-5 w-5 text-blue-500" />
+              </button>
+              <button
+                onClick={() => handlePermanentDelete(item.id)}
+                className="p-2 hover:bg-red-500/10 rounded-full"
+                title="Delete Permanently"
+              >
+                <Trash2 className="h-5 w-5 text-red-500" />
+              </button>
+            </div>
           </div>
         ))}
       </div>

@@ -8,6 +8,7 @@ interface ListsStore {
   fetchLists: () => Promise<void>;
   updateLocalList: (id: string, values: Partial<List>) => void;
   addLocalList: (list: List) => void;
+  removeLocalList: (id: string) => void;
 }
 
 export const useLists = create<ListsStore>((set) => ({
@@ -32,6 +33,11 @@ export const useLists = create<ListsStore>((set) => ({
   addLocalList: (list) => {
     set((state) => ({
       lists: [list, ...state.lists]
+    }));
+  },
+  removeLocalList: (id) => {
+    set((state) => ({
+      lists: state.lists.filter((list) => list.id !== id)
     }));
   }
 }));

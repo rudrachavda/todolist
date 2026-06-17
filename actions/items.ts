@@ -40,6 +40,12 @@ export async function restoreItem(id: string) {
   revalidatePath("/documents");
 }
 
+export async function permanentlyDeleteItem(id: string) {
+  await db.delete(items)
+    .where(eq(items.id, id));
+  revalidatePath("/documents");
+}
+
 export async function getDeletedItems() {
   return db.select()
     .from(items)

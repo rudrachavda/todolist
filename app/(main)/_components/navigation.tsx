@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
 import { useLists } from "@/hooks/use-lists";
-import { createList, updateList } from "@/actions/lists";
+import { createList, updateList, deleteList } from "@/actions/lists";
 import { List } from "@/db/schema";
 import {
   DropdownMenu,
@@ -45,7 +45,7 @@ export const Navigation = () => {
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
   
-  const { lists, fetchLists, addLocalList, updateLocalList } = useLists();
+  const { lists, fetchLists, addLocalList, updateLocalList, removeLocalList } = useLists();
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -156,6 +156,22 @@ export const Navigation = () => {
     await updateList(id, values);
   };
 
+  const onDeleteList = async (id: string) => {
+    const promise = deleteList(id)
+      .then(() => {
+        removeLocalList(id);
+        if (params.listId === id) {
+          router.push("/documents");
+        }
+      });
+
+    toast.promise(promise, {
+      loading: "Deleting list...",
+      success: "List deleted",
+      error: "Failed to delete list"
+    });
+  };
+
   return (
     <>
       <aside
@@ -264,6 +280,12 @@ export const Navigation = () => {
                             if (newName) onUpdateList(list.id, { name: newName });
                           }}>
                             Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => onDeleteList(list.id)}
+                            className="text-red-500 focus:text-red-500"
+                          >
+                            Delete List
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <div className="p-2 grid grid-cols-5 gap-2">
