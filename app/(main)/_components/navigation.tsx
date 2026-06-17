@@ -4,32 +4,27 @@ import {
   ChevronsLeft,
   MenuIcon,
   Plus,
-  PlusCircle,
   Search,
   Settings,
-  Trash,
-  GitMerge
+  Calendar,
+  Clock,
+  Inbox,
+  CheckCircle2,
+  List as ListIcon
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
 import { useMediaQuery } from "usehooks-ts";
-import { useMutation } from "convex/react";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
-import { api } from "@/convex/_generated/api";
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/ui/popover";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
+import { createList, getLists } from "@/actions/lists";
+import { List } from "@/db/schema";
 
 import { UserItem } from "./user-item";
 import { Item } from "./item";
-import { DocumentList } from "./document-list";
-import { TrashBox } from "./trash-box";
 import { Navbar } from "./navbar";
 
 export const Navigation = () => {
@@ -39,13 +34,21 @@ export const Navigation = () => {
   const params = useParams();
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
-  const create = useMutation(api.documents.create);
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
   const navbarRef = useRef<ElementRef<"div">>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
+  const [userLists, setUserLists] = useState<List[]>([]);
+
+  useEffect(() => {
+    const fetchLists = async () => {
+      const result = await getLists();
+      setUserLists(result);
+    };
+    fetchLists();
+  }, []);
 
   useEffect(() => {
     if (isMobile) {
@@ -122,14 +125,17 @@ export const Navigation = () => {
     }
   }
 
-  const handleCreate = () => {
-    const promise = create({ title: "Untitled" })
-      .then((documentId) => router.push(`/documents/${documentId}`))
+  const handleCreateList = async () => {
+    const promise = createList("New List", "#0069cc")
+      .then((list) => {
+        setUserLists(prev => [list, ...prev]);
+        router.push(`/lists/${list.id}`);
+      })
 
     toast.promise(promise, {
-      loading: "Creating a new note...",
-      success: "New note created!",
-      error: "Failed to create a new note."
+      loading: "Creating a new list...",
+      success: "New list created!",
+      error: "Failed to create a new list."
     });
   };
 
@@ -166,35 +172,74 @@ export const Navigation = () => {
             icon={Settings}
             onClick={settings.onOpen}
           />
-          {/* <Item
-            onClick={handleCreate}
-            label="New page"
-            icon={PlusCircle}
-          /> */}
-          <Item
-            label="Graph View"
-            icon={GitMerge}
-            onClick={() => router.push("/graph")}
-          />
         </div>
-        <div className="mt-4">
-          <DocumentList />
-          <Item
-            onClick={handleCreate}
-            icon={Plus}
-            label="Add a page"
-          />
-          <Popover>
-            <PopoverTrigger className="w-full mt-4">
-              <Item label="Trash" icon={Trash} />
-            </PopoverTrigger>
-            <PopoverContent
-              className="p-0 w-72"
-              side={isMobile ? "bottom" : "right"}
+        <div className="mt-4 px-3 grid grid-cols-2 gap-2">
+            <div 
+                onClick={() => router.push("/today")}
+                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
             >
-              <TrashBox />
-            </PopoverContent>
-          </Popover>
+                <div className="flex justify-between items-start">
+                    <div className="bg-blue-500 p-1.5 rounded-full text-white">
+                        <Calendar className="h-4 w-4" />
+                    </div>
+                    <span className="text-xl font-bold font-halo">0</span>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground">Today</span>
+            </div>
+            <div 
+                onClick={() => router.push("/scheduled")}
+                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+            >
+                <div className="flex justify-between items-start">
+                    <div className="bg-red-500 p-1.5 rounded-full text-white">
+                        <Clock className="h-4 w-4" />
+                    </div>
+                    <span className="text-xl font-bold font-halo">0</span>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground">Scheduled</span>
+            </div>
+            <div 
+                onClick={() => router.push("/all")}
+                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+            >
+                <div className="flex justify-between items-start">
+                    <div className="bg-neutral-500 p-1.5 rounded-full text-white">
+                        <Inbox className="h-4 w-4" />
+                    </div>
+                    <span className="text-xl font-bold font-halo">0</span>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground">All</span>
+            </div>
+            <div 
+                onClick={() => router.push("/completed")}
+                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+            >
+                <div className="flex justify-between items-start">
+                    <div className="bg-neutral-400 p-1.5 rounded-full text-white">
+                        <CheckCircle2 className="h-4 w-4" />
+                    </div>
+                    <span className="text-xl font-bold font-halo">0</span>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground">Completed</span>
+            </div>
+        </div>
+        <div className="mt-8 px-3">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>
+          <div className="space-y-1">
+            {userLists.map((list) => (
+                <Item 
+                    key={list.id}
+                    label={list.name}
+                    icon={ListIcon}
+                    onClick={() => router.push(`/lists/${list.id}`)}
+                />
+            ))}
+            <Item
+                onClick={handleCreateList}
+                icon={Plus}
+                label="Add List"
+            />
+          </div>
         </div>
         <div
           onMouseDown={handleMouseDown}

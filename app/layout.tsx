@@ -1,8 +1,10 @@
 import { Toaster } from "sonner";
 import { Inter } from 'next/font/google'
 import type { Metadata } from 'next'
+import localFont from 'next/font/local'
 
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { cn } from "@/lib/utils";
 
 import './globals.css'
 
@@ -10,6 +12,16 @@ const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
+
+const haloGrotesk = localFont({
+  src: '../public/fonts/HaloGrotesk-Regular.otf',
+  variable: '--font-halo',
+})
+
+const spaceGrotesk = localFont({
+  src: '../public/fonts/SpaceGrotesk-Regular.ttf',
+  variable: '--font-space',
+})
 
 export const metadata: Metadata = {
   title: 'Reminders',
@@ -37,7 +49,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={cn(inter.variable, haloGrotesk.variable, spaceGrotesk.variable, "font-sans")}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
