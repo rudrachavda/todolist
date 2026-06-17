@@ -19,7 +19,10 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@clerk/clerk-react": ["./lib/clerk-shim.tsx"],
+      "convex/react": ["./hooks/use-convex-shim.tsx"],
+      "convex/react-clerk": ["./hooks/use-convex-shim.tsx"]
     }
   },
   "include": [

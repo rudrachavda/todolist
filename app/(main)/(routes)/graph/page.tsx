@@ -2,11 +2,13 @@
 
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import ForceGraph2D from "react-force-graph-2d";
 import { useUser } from "@clerk/clerk-react";
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useTheme } from "next-themes";
 import * as d3 from "d3-force";
+import dynamic from "next/dynamic";
+
+const ForceGraph2D = dynamic(() => import("react-force-graph-2d"), { ssr: false });
 
 const GraphPage = () => {
     const { user } = useUser();
@@ -152,7 +154,7 @@ const GraphPage = () => {
 
     const isNodeConnected = useCallback((node: any, hoveredId: string) => {
         if (getNodeId(node) === hoveredId) return true;
-        return data.links.some(link => isLinkConnected(link, hoveredId) && (getNodeId(link.source) === getNodeId(node) || getNodeId(link.target) === getNodeId(node)));
+        return data.links.some((link: any) => isLinkConnected(link, hoveredId) && (getNodeId(link.source) === getNodeId(node) || getNodeId(link.target) === getNodeId(node)));
     }, [data.links, isLinkConnected, getNodeId]);
 
     const handleNodeClick = useCallback((node: any) => {
@@ -203,7 +205,7 @@ const GraphPage = () => {
                         onBackgroundClick={resetAfkTimer}
                         onZoom={resetAfkTimer}
 
-                        nodeCanvasObject={(node, ctx, globalScale) => {
+                        nodeCanvasObject={(node: any, ctx, globalScale) => {
                             const label = node.name;
                             // <--- CHANGE THIS: TEXT SIZE
                             const fontSize = 12 / globalScale;
@@ -219,7 +221,7 @@ const GraphPage = () => {
                             const nodeSize = isHovered ? 5 : 4;
                             
                             ctx.beginPath();
-                            ctx.arc(node.x, node.y, nodeSize, 0, 2 * Math.PI, false);
+                            ctx.arc(node.x ?? 0, node.y ?? 0, nodeSize, 0, 2 * Math.PI, false);
                             
                             // <--- CHANGE THIS: NODE COLOR
                             ctx.fillStyle = isHovered || isNeighbor ? themeColors.primary : themeColors.foreground;
@@ -236,12 +238,12 @@ const GraphPage = () => {
                                 ctx.fillStyle = isHovered ? themeColors.primary : themeColors.secondary;
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'top';
-                                ctx.fillText(label, node.x, node.y + (nodeSize + 2));
+                                ctx.fillText(label, node.x ?? 0, (node.y ?? 0) + (nodeSize + 2));
                             }
                             ctx.restore();
                         }}
 
-                        linkCanvasObject={(link, ctx, globalScale) => {
+                        linkCanvasObject={(link: any, ctx, globalScale) => {
                             const hoveredId = hoverNode ? getNodeId(hoverNode) : null;
                             const isConnected = hoveredId && isLinkConnected(link, hoveredId);
                             const shouldDim = hoverNode && !isConnected;
@@ -259,8 +261,8 @@ const GraphPage = () => {
                             ctx.globalAlpha = isConnected ? 0.8 : 0.2;
                             
                             ctx.beginPath();
-                            ctx.moveTo(link.source.x, link.source.y);
-                            ctx.lineTo(link.target.x, link.target.y);
+                            ctx.moveTo(link.source.x ?? 0, link.source.y ?? 0);
+                            ctx.lineTo(link.target.x ?? 0, link.target.y ?? 0);
                             ctx.stroke();
                             ctx.restore();
                         }}

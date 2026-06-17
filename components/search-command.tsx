@@ -60,7 +60,7 @@ export const SearchCommand = () => {
       <CommandList>
         <CommandEmpty>No results found.</CommandEmpty>
         <CommandGroup heading="Documents">
-          {documents?.map((document) => (
+          {documents?.map((document: any) => (
             <CommandItem
               key={document._id}
               value={`${document._id}-${document.title}`}
