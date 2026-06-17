@@ -10,7 +10,8 @@ import {
   Clock,
   Inbox,
   CheckCircle2,
-  List as ListIcon
+  List as ListIcon,
+  MoreHorizontal
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState } from "react";
@@ -20,8 +21,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
-import { createList, getLists } from "@/actions/lists";
+import { createList, getLists, updateList } from "@/actions/lists";
 import { List } from "@/db/schema";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 
 import { UserItem } from "./user-item";
 import { Item } from "./item";
@@ -42,11 +50,17 @@ export const Navigation = () => {
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
   const [userLists, setUserLists] = useState<List[]>([]);
 
+  const colors = [
+    "#b64400", "#9659b9", "#ee98b7", "#0069cc", "#50aef6", 
+    "#abcdef", "#169b40", "#0a461d", "#fcd609", "#fc9601", "#fc3e2f"
+  ];
+
+  const fetchLists = async () => {
+    const result = await getLists();
+    setUserLists(result);
+  };
+
   useEffect(() => {
-    const fetchLists = async () => {
-      const result = await getLists();
-      setUserLists(result);
-    };
     fetchLists();
   }, []);
 
@@ -137,6 +151,11 @@ export const Navigation = () => {
       success: "New list created!",
       error: "Failed to create a new list."
     });
+  };
+
+  const onUpdateList = async (id: string, values: Partial<{ name: string, color: string }>) => {
+    await updateList(id, values);
+    fetchLists();
   };
 
   return (
@@ -232,6 +251,37 @@ export const Navigation = () => {
                     label={list.name}
                     icon={ListIcon}
                     onClick={() => router.push(`/lists/${list.id}`)}
+                    actions={
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                          <div role="button" className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 p-0.5">
+                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                          </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent className="w-48" align="start" side="right" forceMount onClick={(e) => e.stopPropagation()}>
+                          <DropdownMenuItem onClick={() => {
+                            const newName = prompt("Rename list", list.name);
+                            if (newName) onUpdateList(list.id, { name: newName });
+                          }}>
+                            Rename
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <div className="p-2 grid grid-cols-5 gap-2">
+                            {colors.map((color) => (
+                              <div 
+                                key={color}
+                                onClick={() => onUpdateList(list.id, { color })}
+                                className={cn(
+                                  "h-5 w-5 rounded-full cursor-pointer border border-white/20",
+                                  list.color === color && "ring-2 ring-primary ring-offset-1 dark:ring-offset-neutral-800"
+                                )}
+                                style={{ backgroundColor: color }}
+                              />
+                            ))}
+                          </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    }
                 />
             ))}
             <Item

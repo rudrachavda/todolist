@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { getListById } from "@/actions/lists";
+import { getListById, updateList } from "@/actions/lists";
 import { getItemsByList, createItem, updateItem } from "@/actions/items";
 import { List, Item } from "@/db/schema";
 import { Plus, Circle, CheckCircle2 } from "lucide-react";
@@ -14,16 +14,41 @@ const ListIdPage = () => {
   const [list, setList] = useState<List | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [newItemText, setNewItemText] = useState("");
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [titleValue, setTitleValue] = useState("");
 
   useEffect(() => {
     const fetchData = async () => {
       const listData = await getListById(listId);
       const itemsData = await getItemsByList(listId);
       setList(listData);
+      setTitleValue(listData?.name || "");
       setItems(itemsData);
     };
     fetchData();
   }, [listId]);
+
+  const onRename = async () => {
+    if (!titleValue.trim() || titleValue === list?.name) {
+      setIsEditingTitle(false);
+      setTitleValue(list?.name || "");
+      return;
+    }
+
+    await updateList(listId, { name: titleValue });
+    setList(prev => prev ? { ...prev, name: titleValue } : null);
+    setIsEditingTitle(false);
+  };
+
+  const onTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      onRename();
+    }
+    if (e.key === "Escape") {
+      setIsEditingTitle(false);
+      setTitleValue(list?.name || "");
+    }
+  };
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,13 +69,26 @@ const ListIdPage = () => {
 
   return (
     <div className="h-full flex flex-col p-8 space-y-6">
-      <div className="flex items-center gap-x-3">
-        <h1 
-          className="text-4xl font-bold"
-          style={{ color: list.color }}
-        >
-          {list.name}
-        </h1>
+      <div className="flex items-center gap-x-3 group min-h-[48px]">
+        {isEditingTitle ? (
+          <input
+            autoFocus
+            value={titleValue}
+            onChange={(e) => setTitleValue(e.target.value)}
+            onBlur={onRename}
+            onKeyDown={onTitleKeyDown}
+            className="text-4xl font-bold bg-transparent border-none outline-none p-0 w-full"
+            style={{ color: list.color }}
+          />
+        ) : (
+          <h1 
+            onClick={() => setIsEditingTitle(true)}
+            className="text-4xl font-bold cursor-text"
+            style={{ color: list.color }}
+          >
+            {list.name}
+          </h1>
+        )}
         <div className="ml-auto text-4xl font-light opacity-50">
           {items.length}
         </div>

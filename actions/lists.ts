@@ -32,3 +32,12 @@ export async function getListById(id: string) {
     .where(eq(lists.id, id));
   return list || null;
 }
+
+export async function updateList(id: string, values: Partial<{ name: string, color: string, icon: string }>) {
+  await db.update(lists)
+    .set(values)
+    .where(eq(lists.id, id));
+    
+  revalidatePath(`/lists/${id}`);
+  revalidatePath("/documents");
+}

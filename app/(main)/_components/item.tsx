@@ -16,7 +16,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator
+  DropdownMenuSeparator,
+  DropdownMenuLabel
 } from "@/components/ui/dropdown-menu";
 
 interface ItemProps {
@@ -30,6 +31,7 @@ interface ItemProps {
   label: string;
   onClick?: () => void;
   icon: LucideIcon;
+  actions?: React.ReactNode;
 };
 
 export const Item = ({
@@ -43,6 +45,7 @@ export const Item = ({
   level = 0,
   onExpand,
   expanded,
+  actions,
 }: ItemProps) => {
   const router = useRouter();
 
@@ -82,8 +85,9 @@ export const Item = ({
           <span className="text-xs">⌘</span>K
         </kbd>
       )}
-      {!!id && (
-        <div className="ml-auto flex items-center gap-x-2">
+      <div className="ml-auto flex items-center gap-x-2">
+        {actions}
+        {!!id && !actions && (
           <DropdownMenu>
             <DropdownMenuTrigger
               onClick={(e) => e.stopPropagation()}
@@ -114,8 +118,8 @@ export const Item = ({
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
