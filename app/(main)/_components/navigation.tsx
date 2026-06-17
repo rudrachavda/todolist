@@ -24,6 +24,7 @@ import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
 import { useLists } from "@/hooks/use-lists";
 import { createList, updateList, deleteList } from "@/actions/lists";
+import { getItemsCounts } from "@/actions/items";
 import { List } from "@/db/schema";
 import {
   DropdownMenu,
@@ -45,7 +46,9 @@ export const Navigation = () => {
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
   
-  const { lists, fetchLists, addLocalList, updateLocalList, removeLocalList } = useLists();
+  const { lists, fetchLists: fetchListsStore, addLocalList, updateLocalList, removeLocalList } = useLists();
+
+  const [counts, setCounts] = useState({ today: 0, scheduled: 0, all: 0, completed: 0 });
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -58,9 +61,30 @@ export const Navigation = () => {
     "#abcdef", "#169b40", "#0a461d", "#fcd609", "#fc9601", "#fc3e2f"
   ];
 
+  const fetchLists = useCallback(async () => {
+    await fetchListsStore();
+  }, [fetchListsStore]);
+
+  const fetchCounts = useCallback(async () => {
+    const data = await getItemsCounts();
+    setCounts(data);
+  }, []);
+
+  // Initial fetch
   useEffect(() => {
     fetchLists();
-  }, [fetchLists]);
+    fetchCounts();
+  }, [fetchLists, fetchCounts]);
+
+  // Refetch counts on navigation to ensure badges are fresh, 
+  // but WITHOUT including fetchCounts in the dependency array to avoid the loop
+  useEffect(() => {
+    const update = async () => {
+        const data = await getItemsCounts();
+        setCounts(data);
+    };
+    update();
+  }, [pathname]);
 
   useEffect(() => {
     if (isMobile) {
@@ -215,7 +239,7 @@ export const Navigation = () => {
                     <div className="bg-blue-500 p-1.5 rounded-full text-white">
                         <Calendar className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">0</span>
+                    <span className="text-xl font-bold font-halo">{counts.today}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Today</span>
             </div>
@@ -227,7 +251,7 @@ export const Navigation = () => {
                     <div className="bg-red-500 p-1.5 rounded-full text-white">
                         <Clock className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">0</span>
+                    <span className="text-xl font-bold font-halo">{counts.scheduled}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Scheduled</span>
             </div>
@@ -239,7 +263,7 @@ export const Navigation = () => {
                     <div className="bg-neutral-500 p-1.5 rounded-full text-white">
                         <Inbox className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">0</span>
+                    <span className="text-xl font-bold font-halo">{counts.all}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">All</span>
             </div>
@@ -251,7 +275,7 @@ export const Navigation = () => {
                     <div className="bg-neutral-400 p-1.5 rounded-full text-white">
                         <CheckCircle2 className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">0</span>
+                    <span className="text-xl font-bold font-halo">{counts.completed}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Completed</span>
             </div>

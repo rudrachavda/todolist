@@ -2,7 +2,7 @@
 
 import { db } from "@/db";
 import { items } from "@/db/schema";
-import { eq, and, gte, lte, or, desc } from "drizzle-orm";
+import { eq, and, gte, lte, or, desc, sql, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
 const userId = "user_1"; // Shim user
@@ -91,4 +91,39 @@ export async function getCompletedItems() {
     return db.select()
         .from(items)
         .where(and(eq(items.isCompleted, true), eq(items.userId, userId), eq(items.isDeleted, false)));
+}
+
+export async function getItemsCounts() {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const [all] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false)));
+  const [todayCount] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.dueDate, today)));
+  const [scheduled] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), gte(items.dueDate, today)));
+  const [completed] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, true)));
+  
+  return {
+    all: all?.count || 0,
+    today: todayCount?.count || 0,
+    scheduled: scheduled?.count || 0,
+    completed: completed?.count || 0,
+  };
+}
+
+export async function searchItems(query: string) {
+  const words = query.trim().split(/\s+/);
+  if (words.length === 0) return [];
+
+  const conditions = words.map(word => like(items.text, `%${word}%`));
+
+  return db.select()
+    .from(items)
+    .where(
+      and(
+        eq(items.userId, userId),
+        eq(items.isDeleted, false),
+        ...conditions
+      )
+    )
+    .orderBy(desc(items.createdAt))
+    .limit(10);
 }
