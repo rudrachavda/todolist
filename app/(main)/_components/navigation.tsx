@@ -239,18 +239,6 @@ export const Navigation = () => {
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Completed</span>
             </div>
-            <div 
-                onClick={() => router.push("/recently-deleted")}
-                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
-            >
-                <div className="flex justify-between items-start">
-                    <div className="bg-neutral-500 p-1.5 rounded-full text-white">
-                        <Trash2 className="h-4 w-4" />
-                    </div>
-                    <span className="text-xl font-bold font-halo">0</span>
-                </div>
-                <span className="text-xs font-semibold text-muted-foreground">Recently Deleted</span>
-            </div>
         </div>
         <div className="mt-8 px-3 flex-1 overflow-y-auto">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>
@@ -301,6 +289,14 @@ export const Navigation = () => {
                 icon={Plus}
                 label="Add List"
             />
+            <div className="pt-4 mt-4 border-t border-secondary-foreground/10">
+                <Item 
+                    label="Recently Deleted"
+                    icon={Trash2}
+                    onClick={() => router.push("/recently-deleted")}
+                    active={pathname === "/recently-deleted"}
+                />
+            </div>
           </div>
         </div>
         <div

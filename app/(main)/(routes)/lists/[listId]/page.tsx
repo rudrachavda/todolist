@@ -13,24 +13,26 @@ import { toast } from "sonner";
 const ListIdPage = () => {
   const params = useParams();
   const listId = params.listId as string;
-  const [list, setList] = useState<List | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [newItemText, setNewItemText] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
 
-  const { updateLocalList } = useLists();
+  const { lists, updateLocalList } = useLists();
+  
+  // Find the list from our global store to get live updates (like color)
+  const list = lists.find(l => l.id === listId);
 
   useEffect(() => {
     const fetchData = async () => {
-      const listData = await getListById(listId);
       const itemsData = await getItemsByList(listId);
-      setList(listData);
-      setTitleValue(listData?.name || "");
       setItems(itemsData);
+      if (list) {
+        setTitleValue(list.name);
+      }
     };
     fetchData();
-  }, [listId]);
+  }, [listId, list]);
 
   const onRename = async () => {
     if (!titleValue.trim() || titleValue === list?.name) {
@@ -41,7 +43,6 @@ const ListIdPage = () => {
 
     updateLocalList(listId, { name: titleValue });
     await updateList(listId, { name: titleValue });
-    setList(prev => prev ? { ...prev, name: titleValue } : null);
     setIsEditingTitle(false);
   };
 
