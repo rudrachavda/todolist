@@ -19,6 +19,7 @@ export const items = sqliteTable("items", {
   description: text("description"),
   dueDate: text("dueDate"), 
   isCompleted: integer("isCompleted", { mode: "boolean" }).notNull().default(false),
+  isDeleted: integer("isDeleted", { mode: "boolean" }).notNull().default(false),
   createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updatedAt").default(sql`CURRENT_TIMESTAMP`),
 });

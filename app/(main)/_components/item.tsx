@@ -32,6 +32,7 @@ interface ItemProps {
   onClick?: () => void;
   icon: LucideIcon;
   actions?: React.ReactNode;
+  color?: string;
 };
 
 export const Item = ({
@@ -46,6 +47,7 @@ export const Item = ({
   onExpand,
   expanded,
   actions,
+  color,
 }: ItemProps) => {
   const router = useRouter();
 
@@ -74,10 +76,14 @@ export const Item = ({
         </div>
       ) : (
         <Icon
-          className="shrink-0 h-[18px] w-[18px] mr-2 text-muted-foreground"
+          className="shrink-0 h-[18px] w-[18px] mr-2"
+          style={{ color: color }}
         />
       )}
-      <span className="truncate">
+      <span 
+        className="truncate"
+        style={{ color: color }}
+      >
         {label}
       </span>
       {isSearch && (

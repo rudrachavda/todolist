@@ -3,10 +3,12 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { getListById, updateList } from "@/actions/lists";
-import { getItemsByList, createItem, updateItem } from "@/actions/items";
+import { getItemsByList, createItem, updateItem, deleteItem } from "@/actions/items";
+import { useLists } from "@/hooks/use-lists";
 import { List, Item } from "@/db/schema";
-import { Plus, Circle, CheckCircle2 } from "lucide-react";
+import { Plus, Circle, CheckCircle2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const ListIdPage = () => {
   const params = useParams();
@@ -16,6 +18,8 @@ const ListIdPage = () => {
   const [newItemText, setNewItemText] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
+
+  const { updateLocalList } = useLists();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -35,6 +39,7 @@ const ListIdPage = () => {
       return;
     }
 
+    updateLocalList(listId, { name: titleValue });
     await updateList(listId, { name: titleValue });
     setList(prev => prev ? { ...prev, name: titleValue } : null);
     setIsEditingTitle(false);
@@ -63,6 +68,17 @@ const ListIdPage = () => {
     const updatedStatus = !item.isCompleted;
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, isCompleted: updatedStatus } : i));
     await updateItem(item.id, { isCompleted: updatedStatus });
+  };
+
+  const handleDeleteItem = async (id: string) => {
+    const promise = deleteItem(id)
+      .then(() => setItems(prev => prev.filter(i => i.id !== id)));
+    
+    toast.promise(promise, {
+      loading: "Deleting reminder...",
+      success: "Reminder moved to Trash",
+      error: "Failed to delete reminder"
+    });
   };
 
   if (!list) return null;
@@ -123,6 +139,13 @@ const ListIdPage = () => {
                 </p>
               )}
             </div>
+            <button
+              onClick={() => handleDeleteItem(item.id)}
+              className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
+              title="Delete"
+            >
+              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+            </button>
           </div>
         ))}
 

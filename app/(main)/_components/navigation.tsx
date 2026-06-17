@@ -11,17 +11,19 @@ import {
   Inbox,
   CheckCircle2,
   List as ListIcon,
-  MoreHorizontal
+  MoreHorizontal,
+  Trash2
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import { ElementRef, useEffect, useRef, useState } from "react";
+import { ElementRef, useEffect, useRef, useState, useCallback } from "react";
 import { useMediaQuery } from "usehooks-ts";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
-import { createList, getLists, updateList } from "@/actions/lists";
+import { useLists } from "@/hooks/use-lists";
+import { createList, updateList } from "@/actions/lists";
 import { List } from "@/db/schema";
 import {
   DropdownMenu,
@@ -42,27 +44,23 @@ export const Navigation = () => {
   const params = useParams();
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
+  
+  const { lists, fetchLists, addLocalList, updateLocalList } = useLists();
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
   const navbarRef = useRef<ElementRef<"div">>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
-  const [userLists, setUserLists] = useState<List[]>([]);
 
   const colors = [
     "#b64400", "#9659b9", "#ee98b7", "#0069cc", "#50aef6", 
     "#abcdef", "#169b40", "#0a461d", "#fcd609", "#fc9601", "#fc3e2f"
   ];
 
-  const fetchLists = async () => {
-    const result = await getLists();
-    setUserLists(result);
-  };
-
   useEffect(() => {
     fetchLists();
-  }, []);
+  }, [fetchLists]);
 
   useEffect(() => {
     if (isMobile) {
@@ -142,7 +140,7 @@ export const Navigation = () => {
   const handleCreateList = async () => {
     const promise = createList("New List", "#0069cc")
       .then((list) => {
-        setUserLists(prev => [list, ...prev]);
+        addLocalList(list);
         router.push(`/lists/${list.id}`);
       })
 
@@ -154,8 +152,8 @@ export const Navigation = () => {
   };
 
   const onUpdateList = async (id: string, values: Partial<{ name: string, color: string }>) => {
+    updateLocalList(id, values);
     await updateList(id, values);
-    fetchLists();
   };
 
   return (
@@ -241,16 +239,30 @@ export const Navigation = () => {
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Completed</span>
             </div>
+            <div 
+                onClick={() => router.push("/recently-deleted")}
+                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+            >
+                <div className="flex justify-between items-start">
+                    <div className="bg-neutral-500 p-1.5 rounded-full text-white">
+                        <Trash2 className="h-4 w-4" />
+                    </div>
+                    <span className="text-xl font-bold font-halo">0</span>
+                </div>
+                <span className="text-xs font-semibold text-muted-foreground">Recently Deleted</span>
+            </div>
         </div>
-        <div className="mt-8 px-3">
+        <div className="mt-8 px-3 flex-1 overflow-y-auto">
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>
-          <div className="space-y-1">
-            {userLists.map((list) => (
+          <div className="space-y-1 pb-4">
+            {lists.map((list) => (
                 <Item 
                     key={list.id}
                     label={list.name}
                     icon={ListIcon}
+                    color={list.color}
                     onClick={() => router.push(`/lists/${list.id}`)}
+                    active={params.listId === list.id}
                     actions={
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
