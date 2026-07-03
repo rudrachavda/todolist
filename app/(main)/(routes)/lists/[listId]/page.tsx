@@ -103,7 +103,7 @@ const ListIdPage = () => {
   const [titleValue, setTitleValue] = useState("");
   const [activeItem, setActiveItem] = useState<ItemSchema | null>(null);
 
-  const { lists, updateLocalList } = useLists();
+  const { lists, updateLocalList, fetchItemCounts } = useLists(); 
   
   const list = lists.find(l => l.id === listId);
 
@@ -154,17 +154,22 @@ const ListIdPage = () => {
     const newItem = await createItem(newItemText, listId);
     setItems(prev => [newItem, ...prev]);
     setNewItemText("");
+    fetchItemCounts(); 
   };
 
   const handleToggleCompletion = async (item: ItemSchema) => {
     const updatedStatus = !item.isCompleted;
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, isCompleted: updatedStatus } : i));
     await updateItem(item.id, { isCompleted: updatedStatus });
+    fetchItemCounts(); 
   };
 
   const handleDeleteItem = async (id: string) => {
     const promise = deleteItem(id)
-      .then(() => setItems(prev => prev.filter(i => i.id !== id)));
+      .then(() => {
+        setItems(prev => prev.filter(i => i.id !== id));
+        fetchItemCounts(); 
+      });
     
     toast.promise(promise, {
       loading: "Deleting reminder...",
@@ -179,7 +184,7 @@ const ListIdPage = () => {
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const {active, over} = event;
-    setActiveItem(null); // Clear active item
+    setActiveItem(null); 
 
     if (!over) return;
 
@@ -189,16 +194,17 @@ const ListIdPage = () => {
     const overType = over.data.current?.type;
     let targetListId: string | undefined;
 
-    if (overType === 'List') { // Dropped on a sidebar list item
+    if (overType === 'List') { 
       targetListId = over.data.current?.listId;
-    } else if (overType === 'ListGroup' && over.data.current?.listId) { // Dropped on a list group heading in FilterPage
+    } else if (overType === 'ListGroup' && over.data.current?.listId) { 
       targetListId = over.data.current.listId;
     }
 
     if (activeItemData && targetListId && targetListId !== oldListId) {
       const promise = moveItem(activeItemData.id, targetListId, oldListId)
         .then(() => {
-          setItems(prev => prev.filter(item => item.id !== activeItemData.id)); // Remove from current view
+          setItems(prev => prev.filter(item => item.id !== activeItemData.id)); 
+          fetchItemCounts(); 
         });
 
       toast.promise(promise, {

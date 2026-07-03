@@ -47,9 +47,7 @@ export const Navigation = () => {
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
   
-  const { lists, fetchLists: fetchListsStore, addLocalList, updateLocalList, removeLocalList } = useLists();
-
-  const [counts, setCounts] = useState({ today: 0, scheduled: 0, all: 0, completed: 0 });
+  const { lists, fetchLists: fetchListsStore, addLocalList, updateLocalList, removeLocalList, itemCounts, fetchItemCounts } = useLists();
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -66,26 +64,16 @@ export const Navigation = () => {
     await fetchListsStore();
   }, [fetchListsStore]);
 
-  const fetchCounts = useCallback(async () => {
-    const data = await getItemsCounts();
-    setCounts(data);
-  }, []);
-
-  // Initial fetch
+  // Initial fetch for lists and counts
   useEffect(() => {
     fetchLists();
-    fetchCounts();
-  }, [fetchLists, fetchCounts]);
+    fetchItemCounts();
+  }, [fetchLists, fetchItemCounts]);
 
-  // Refetch counts on navigation to ensure badges are fresh, 
-  // but WITHOUT including fetchCounts in the dependency array to avoid the loop
+  // Refetch counts on navigation to ensure badges are fresh
   useEffect(() => {
-    const update = async () => {
-        const data = await getItemsCounts();
-        setCounts(data);
-    };
-    update();
-  }, [pathname]);
+    fetchItemCounts();
+  }, [pathname, fetchItemCounts]);
 
   useEffect(() => {
     if (isMobile) {
@@ -240,7 +228,7 @@ export const Navigation = () => {
                     <div className="bg-blue-500 p-1.5 rounded-full text-white">
                         <Calendar className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{counts.today}</span>
+                    <span className="text-xl font-bold font-halo">{itemCounts.today}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Today</span>
             </div>
@@ -252,7 +240,7 @@ export const Navigation = () => {
                     <div className="bg-red-500 p-1.5 rounded-full text-white">
                         <Clock className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{counts.scheduled}</span>
+                    <span className="text-xl font-bold font-halo">{itemCounts.scheduled}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Scheduled</span>
             </div>
@@ -264,7 +252,7 @@ export const Navigation = () => {
                     <div className="bg-neutral-500 p-1.5 rounded-full text-white">
                         <Inbox className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{counts.all}</span>
+                    <span className="text-xl font-bold font-halo">{itemCounts.all}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">All</span>
             </div>
@@ -276,7 +264,7 @@ export const Navigation = () => {
                     <div className="bg-neutral-400 p-1.5 rounded-full text-white">
                         <CheckCircle2 className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{counts.completed}</span>
+                    <span className="text-xl font-bold font-halo">{itemCounts.completed}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Completed</span>
             </div>

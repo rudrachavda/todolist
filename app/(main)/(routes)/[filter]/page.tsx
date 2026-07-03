@@ -150,6 +150,7 @@ const FilterPage = () => {
   const [activeItem, setActiveItem] = useState<ExtendedItem | null>(null);
 
   const config = filterConfig[filter];
+  const { lists: allLists, fetchItemCounts } = useLists(); // Destructure fetchItemCounts
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -169,8 +170,6 @@ const FilterPage = () => {
     };
     fetchData();
   }, [filter, config]);
-
-  const { lists: allLists } = useLists();
 
   const groupedItems = useMemo(() => {
     if (filter !== "all") {
@@ -208,7 +207,7 @@ const FilterPage = () => {
     });
 
     return result;
-  }, [items, filter]);
+  }, [items, filter, allLists]); // Add allLists to dependency array
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -216,19 +215,37 @@ const FilterPage = () => {
 
     const dueDate = filter === "today" ? new Date().toISOString().split('T')[0] : undefined;
     const newItem = await createItem(newItemText, undefined, dueDate);
-    setItems(prev => [newItem, ...prev]);
+    
+    // Re-fetch all items for the current filter to reflect the new item
+    // This is especially important for filters like "Today", "Scheduled", "All"
+    // where item placement depends on their properties
+    const updatedItems = await config.fetcher();
+    setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+
     setNewItemText("");
+    fetchItemCounts(); // Update global counts
   };
 
   const handleToggleCompletion = async (item: ExtendedItem) => {
     const updatedStatus = !item.isCompleted;
-    setItems(prev => prev.map(i => i.id === item.id ? { ...i, isCompleted: updatedStatus } : i));
     await updateItem(item.id, { isCompleted: updatedStatus });
+    
+    // Re-fetch all items for the current filter to reflect the completion status
+    // This handles items disappearing from 'Today', 'All', or appearing in 'Completed'
+    const updatedItems = await config.fetcher();
+    setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+
+    fetchItemCounts(); // Update global counts
   };
 
   const handleDeleteItem = async (id: string) => {
     const promise = deleteItem(id)
-      .then(() => setItems(prev => prev.filter(i => i.id !== id)));
+      .then(async () => {
+        // Re-fetch all items for the current filter to reflect the deletion
+        const updatedItems = await config.fetcher();
+        setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+        fetchItemCounts(); // Update global counts
+      });
     
     toast.promise(promise, {
       loading: "Deleting reminder...",
@@ -261,8 +278,11 @@ const FilterPage = () => {
 
     if (activeItemData && targetListId && targetListId !== oldListId) {
       const promise = moveItem(activeItemData.id, targetListId, oldListId)
-        .then(() => {
-          setItems(prev => prev.filter(item => item.id !== activeItemData.id)); // Remove from current view
+        .then(async () => {
+          // Re-fetch all items for the current filter to reflect the move
+          const updatedItems = await config.fetcher();
+          setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+          fetchItemCounts(); // Update global counts
         });
 
       toast.promise(promise, {
