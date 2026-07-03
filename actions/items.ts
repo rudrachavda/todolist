@@ -1,7 +1,7 @@
 "use server";
 
 import { db } from "@/db";
-import { items } from "@/db/schema";
+import { items, lists } from "@/db/schema";
 import { eq, and, gte, lte, or, desc, sql, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -75,9 +75,16 @@ export async function getTodayItems() {
 }
 
 export async function getAllItems() {
-    return db.select()
-        .from(items)
-        .where(and(eq(items.userId, userId), eq(items.isDeleted, false)));
+    return db.select({
+      item: items,
+      list: {
+        name: lists.name,
+        color: lists.color,
+      }
+    })
+    .from(items)
+    .leftJoin(lists, eq(items.listId, lists.id))
+    .where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, false)));
 }
 
 export async function getScheduledItems() {

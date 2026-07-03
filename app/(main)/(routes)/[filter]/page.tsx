@@ -1,12 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { getTodayItems, getScheduledItems, getAllItems, getCompletedItems, createItem, updateItem, deleteItem } from "@/actions/items";
-import { Item } from "@/db/schema";
+import { Item, List } from "@/db/schema";
 import { Plus, Circle, CheckCircle2, Calendar, Clock, Inbox, CheckCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+
+interface ExtendedItem extends Item {
+  listName?: string;
+  listColor?: string;
+}
+
+interface GroupedItems {
+  list: { name: string; color: string; id: string } | null;
+  items: ExtendedItem[];
+}
 
 const filterConfig: Record<string, { label: string, icon: any, color: string, fetcher: any }> = {
   today: { label: "Today", icon: Calendar, color: "#3b82f6", fetcher: getTodayItems },
@@ -18,7 +28,7 @@ const filterConfig: Record<string, { label: string, icon: any, color: string, fe
 const FilterPage = () => {
   const params = useParams();
   const filter = params.filter as string;
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ExtendedItem[]>([]);
   const [newItemText, setNewItemText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -29,12 +39,41 @@ const FilterPage = () => {
       if (config) {
         setIsLoading(true);
         const data = await config.fetcher();
-        setItems(data);
+        setItems(filter === "all" ? data.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : data);
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [filter, config]); // config is now stable because it's defined outside
+  }, [filter, config]);
+
+  const groupedItems = useMemo(() => {
+    if (filter !== "all") {
+      return [{ list: null, items }];
+    }
+
+    const groups: { [listId: string]: GroupedItems } = {};
+    const defaultList: GroupedItems = { list: null, items: [] };
+
+    items.forEach(item => {
+      const listId = item.listId || "no-list";
+      if (!groups[listId]) {
+        groups[listId] = {
+          list: item.listId ? { id: item.listId, name: item.listName || "Untitled List", color: item.listColor || "#000000" } : null,
+          items: []
+        };
+      }
+      groups[listId].items.push(item);
+    });
+
+    const result = Object.values(groups).sort((a, b) => {
+      if (!a.list && b.list) return -1;
+      if (a.list && !b.list) return 1;
+      if (!a.list && !b.list) return 0;
+      return a.list!.name.localeCompare(b.list!.name);
+    });
+
+    return result;
+  }, [items, filter]);
 
   const handleCreateItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +85,7 @@ const FilterPage = () => {
     setNewItemText("");
   };
 
-  const handleToggleCompletion = async (item: Item) => {
+  const handleToggleCompletion = async (item: ExtendedItem) => {
     const updatedStatus = !item.isCompleted;
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, isCompleted: updatedStatus } : i));
     await updateItem(item.id, { isCompleted: updatedStatus });
@@ -80,48 +119,62 @@ const FilterPage = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto space-y-1">
-        {items.length === 0 && !isLoading && (
+        {items.length === 0 && !isLoading ? (
           <p className="text-muted-foreground text-center pt-20">
             No reminders found.
           </p>
-        )}
-        {items.map((item) => (
-          <div 
-            key={item.id}
-            className="group flex items-start gap-x-3 py-3 border-b border-secondary/50 last:border-0"
-          >
-            <button
-              onClick={() => handleToggleCompletion(item)}
-              className="mt-0.5 hover:opacity-75 transition"
-            >
-              {item.isCompleted ? (
-                <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
-              ) : (
-                <Circle className="h-6 w-6 text-muted-foreground" />
-              )}
-            </button>
-            <div className="flex-1 space-y-0.5">
-              <p className={cn(
-                "text-lg font-medium transition",
-                item.isCompleted && "text-muted-foreground line-through"
-              )}>
-                {item.text}
-              </p>
-              {item.dueDate && (
-                <p className="text-xs text-red-500 font-medium">
-                  {new Date(item.dueDate).toLocaleDateString()}
-                </p>
-              )}
+        ) : isLoading ? (
+            <div className="text-muted-foreground text-center pt-20">
+                Loading reminders...
             </div>
-            <button
-              onClick={() => handleDeleteItem(item.id)}
-              className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
-              title="Delete"
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
-            </button>
-          </div>
-        ))}
+        ) : (
+          groupedItems.map((group, groupIndex) => (
+            <div key={group.list?.id || `no-list-${groupIndex}`} className="mb-4">
+              {group.list && (
+                <h2 className="text-2xl font-bold mb-2" style={{ color: group.list.color }}>
+                  {group.list.name}
+                </h2>
+              )}
+              {group.items.map((item) => (
+                <div 
+                  key={item.id}
+                  className="group flex items-start gap-x-3 py-3 border-b border-secondary/50 last:border-0"
+                >
+                  <button
+                    onClick={() => handleToggleCompletion(item)}
+                    className="mt-0.5 hover:opacity-75 transition"
+                  >
+                    {item.isCompleted ? (
+                      <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
+                    ) : (
+                      <Circle className="h-6 w-6 text-muted-foreground" />
+                    )}
+                  </button>
+                  <div className="flex-1 space-y-0.5">
+                    <p className={cn(
+                      "text-lg font-medium transition",
+                      item.isCompleted && "text-muted-foreground line-through"
+                    )}>
+                      {item.text}
+                    </p>
+                    {item.dueDate && (
+                      <p className="text-xs text-red-500 font-medium">
+                        {new Date(item.dueDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDeleteItem(item.id)}
+                    className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
+                    title="Delete"
+                  >
+                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ))
+        )}
 
         {filter !== "completed" && (
             <form 
