@@ -15,7 +15,7 @@ export async function createItem(text: string, listId?: string, dueDate?: string
     userId,
   }).returning();
   
-  revalidatePath("/documents");
+  revalidatePath("/", "layout");
   return newItem;
 }
 
@@ -27,30 +27,36 @@ export async function getItemsByList(listId: string) {
 }
 
 export async function deleteItem(id: string) {
-  await db.update(items)
+  console.log("deleteItem called", id);
+  const result = await db.update(items)
     .set({ isDeleted: true })
-    .where(eq(items.id, id));
-  revalidatePath("/documents");
+    .where(eq(items.id, id))
+    .returning();
+  console.log("deleteItem result:", result);
+  revalidatePath("/", "layout");
 }
 
 export async function restoreItem(id: string) {
   await db.update(items)
     .set({ isDeleted: false })
     .where(eq(items.id, id));
-  revalidatePath("/documents");
+  revalidatePath("/", "layout");
 }
 
 export async function permanentlyDeleteItem(id: string) {
   await db.delete(items)
     .where(eq(items.id, id));
-  revalidatePath("/documents");
+  revalidatePath("/", "layout");
 }
 
 export async function moveItem(id: string, newListId: string, oldListId?: string) {
-  await db.update(items)
+  console.log("moveItem called", { id, newListId, oldListId });
+  const result = await db.update(items)
     .set({ listId: newListId })
-    .where(eq(items.id, id));
-  revalidatePath("/documents");
+    .where(eq(items.id, id))
+    .returning();
+  console.log("moveItem result:", result);
+  revalidatePath("/", "layout");
   revalidatePath(`/lists/${newListId}`);
   if (oldListId) {
     revalidatePath(`/lists/${oldListId}`);
@@ -67,14 +73,17 @@ export async function toggleItemCompletion(id: string, isCompleted: boolean) {
   await db.update(items)
     .set({ isCompleted })
     .where(eq(items.id, id));
-  revalidatePath("/documents");
+  revalidatePath("/", "layout");
 }
 
 export async function updateItem(id: string, values: Partial<{ text: string, isCompleted: boolean, dueDate: string, isDeleted: boolean }>) {
-    await db.update(items)
+    console.log("updateItem called", { id, values });
+    const result = await db.update(items)
         .set(values)
-        .where(eq(items.id, id));
-    revalidatePath("/documents");
+        .where(eq(items.id, id))
+        .returning();
+    console.log("updateItem result:", result);
+    revalidatePath("/", "layout");
 }
 
 export async function getTodayItems() {

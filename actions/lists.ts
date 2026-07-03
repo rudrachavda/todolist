@@ -15,7 +15,7 @@ export async function createList(name: string, color: string, icon?: string) {
     userId,
   }).returning();
   
-  revalidatePath("/documents"); // Using skeleton route for now
+  revalidatePath("/", "layout"); // Using skeleton route for now
   return newList;
 }
 
@@ -39,12 +39,12 @@ export async function updateList(id: string, values: Partial<{ name: string, col
     .where(eq(lists.id, id));
     
   revalidatePath(`/lists/${id}`);
-  revalidatePath("/documents");
+  revalidatePath("/", "layout");
 }
 
 export async function deleteList(id: string) {
   await db.delete(lists)
     .where(eq(lists.id, id));
     
-  revalidatePath("/documents");
+  revalidatePath("/", "layout");
 }
