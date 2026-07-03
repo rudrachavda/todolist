@@ -46,6 +46,16 @@ export async function permanentlyDeleteItem(id: string) {
   revalidatePath("/documents");
 }
 
+export async function moveItem(id: string, newListId: string, oldListId?: string) {
+  await db.update(items)
+    .set({ listId: newListId })
+    .where(eq(items.id, id));
+  revalidatePath("/documents");
+  revalidatePath(`/lists/${newListId}`);
+  if (oldListId) {
+    revalidatePath(`/lists/${oldListId}`);
+  }
+}
 export async function getDeletedItems() {
   return db.select()
     .from(items)

@@ -2,11 +2,31 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { getTodayItems, getScheduledItems, getAllItems, getCompletedItems, createItem, updateItem, deleteItem } from "@/actions/items";
+import { getTodayItems, getScheduledItems, getAllItems, getCompletedItems, createItem, updateItem, deleteItem, moveItem } from "@/actions/items";
 import { Item, List } from "@/db/schema";
 import { Plus, Circle, CheckCircle2, Calendar, Clock, Inbox, CheckCircle, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useLists } from "@/hooks/use-lists";
+import {
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  UniqueIdentifier,
+  useDroppable,
+  DragOverlay
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ExtendedItem extends Item {
   listName?: string;
@@ -17,6 +37,102 @@ interface GroupedItems {
   list: { name: string; color: string; id: string } | null;
   items: ExtendedItem[];
 }
+
+interface DraggableItemProps {
+  item: ExtendedItem;
+  onToggleCompletion: (item: ExtendedItem) => void;
+  onDeleteItem: (id: string) => void;
+  wrapperRef?: React.Ref<HTMLDivElement>;
+}
+
+const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, wrapperRef }: DraggableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({id: item.id, data: { item }});
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : 'auto',
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <div 
+      ref={wrapperRef ? wrapperRef : setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+      className="group flex items-start gap-x-3 py-3 border-b border-secondary/50 last:border-0 relative"
+    >
+      <button
+        onClick={() => onToggleCompletion(item)}
+        className="mt-0.5 hover:opacity-75 transition"
+      >
+        {item.isCompleted ? (
+          <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
+        ) : (
+          <Circle className="h-6 w-6 text-muted-foreground" />
+        )}
+      </button>
+      <div className="flex-1 space-y-0.5">
+        <p className={cn(
+          "text-lg font-medium transition",
+          item.isCompleted && "text-muted-foreground line-through"
+        )}>
+          {item.text}
+        </p>
+        {item.dueDate && (
+          <p className="text-xs text-red-500 font-medium">
+            {new Date(item.dueDate).toLocaleDateString()}
+          </p>
+        )}
+      </div>
+      <button
+        onClick={() => onDeleteItem(item.id)}
+        className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
+        title="Delete"
+      >
+        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+      </button>
+    </div>
+  );
+}
+
+interface DroppableListGroupProps {
+  list: { name: string; color: string; id: string } | null;
+  children: React.ReactNode;
+}
+
+const DroppableListGroup = ({ list, children }: DroppableListGroupProps) => {
+  const {setNodeRef, isOver} = useDroppable({
+    id: list?.id || 'no-list-items',
+    data: {
+      type: 'ListGroup',
+      listId: list?.id,
+    },
+  });
+
+  return (
+    <div 
+      ref={setNodeRef} 
+      className={cn("mb-4", isOver && "ring-2 ring-blue-500 ring-offset-2")}
+    >
+      {list && (
+        <h2 className="text-2xl font-bold mb-2" style={{ color: list.color }}>
+          {list.name}
+        </h2>
+      )}
+      {children}
+    </div>
+  );
+};
+
 
 const filterConfig: Record<string, { label: string, icon: any, color: string, fetcher: any }> = {
   today: { label: "Today", icon: Calendar, color: "#3b82f6", fetcher: getTodayItems },
@@ -31,8 +147,16 @@ const FilterPage = () => {
   const [items, setItems] = useState<ExtendedItem[]>([]);
   const [newItemText, setNewItemText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [activeItem, setActiveItem] = useState<ExtendedItem | null>(null);
 
   const config = filterConfig[filter];
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -46,19 +170,30 @@ const FilterPage = () => {
     fetchData();
   }, [filter, config]);
 
+  const { lists: allLists } = useLists();
+
   const groupedItems = useMemo(() => {
     if (filter !== "all") {
       return [{ list: null, items }];
     }
 
     const groups: { [listId: string]: GroupedItems } = {};
-    const defaultList: GroupedItems = { list: null, items: [] };
+    
+    // Initialize groups with all lists, even if empty
+    allLists.forEach(list => {
+      groups[list.id] = {
+        list: { id: list.id, name: list.name, color: list.color },
+        items: []
+      };
+    });
 
     items.forEach(item => {
       const listId = item.listId || "no-list";
       if (!groups[listId]) {
+        // This case should ideally not happen if all items have a valid listId
+        // but acts as a fallback for items without a proper parent
         groups[listId] = {
-          list: item.listId ? { id: item.listId, name: item.listName || "Untitled List", color: item.listColor || "#000000" } : null,
+          list: { id: listId, name: item.listName || "Untitled List", color: item.listColor || "#000000" },
           items: []
         };
       }
@@ -102,6 +237,42 @@ const FilterPage = () => {
     });
   };
 
+  const handleDragStart = (event: any) => {
+    setActiveItem(event.active.data.current?.item);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const {active, over} = event;
+    setActiveItem(null);
+
+    if (!over) return;
+
+    const activeItemData = active.data.current?.item;
+    const oldListId = activeItemData?.listId;
+
+    const overType = over.data.current?.type;
+    let targetListId: string | undefined;
+
+    if (overType === 'List') { // Dropped on a sidebar list item
+      targetListId = over.data.current?.listId;
+    } else if (overType === 'ListGroup' && over.data.current?.listId) { // Dropped on a list group heading in FilterPage
+      targetListId = over.data.current.listId;
+    }
+
+    if (activeItemData && targetListId && targetListId !== oldListId) {
+      const promise = moveItem(activeItemData.id, targetListId, oldListId)
+        .then(() => {
+          setItems(prev => prev.filter(item => item.id !== activeItemData.id)); // Remove from current view
+        });
+
+      toast.promise(promise, {
+        loading: "Moving reminder...",
+        success: "Reminder moved!",
+        error: "Failed to move reminder."
+      });
+    }
+  };
+
   if (!config) return <div className="p-8">Invalid Filter</div>;
 
   return (
@@ -118,65 +289,54 @@ const FilterPage = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-1">
-        {items.length === 0 && !isLoading ? (
-          <p className="text-muted-foreground text-center pt-20">
-            No reminders found.
-          </p>
-        ) : isLoading ? (
-            <div className="text-muted-foreground text-center pt-20">
-                Loading reminders...
-            </div>
-        ) : (
-          groupedItems.map((group, groupIndex) => (
-            <div key={group.list?.id || `no-list-${groupIndex}`} className="mb-4">
-              {group.list && (
-                <h2 className="text-2xl font-bold mb-2" style={{ color: group.list.color }}>
-                  {group.list.name}
-                </h2>
-              )}
-              {group.items.map((item) => (
-                <div 
-                  key={item.id}
-                  className="group flex items-start gap-x-3 py-3 border-b border-secondary/50 last:border-0"
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-1 overflow-y-auto space-y-1">
+          {items.length === 0 && !isLoading ? (
+            <p className="text-muted-foreground text-center pt-20">
+              No reminders found.
+            </p>
+          ) : isLoading ? (
+              <div className="text-muted-foreground text-center pt-20">
+                  Loading reminders...
+              </div>
+          ) : (
+            groupedItems.map((group, groupIndex) => (
+              <DroppableListGroup key={group.list?.id || `no-list-${groupIndex}`} list={group.list}>
+                <SortableContext 
+                  items={group.items.map(item => item.id)}
+                  strategy={verticalListSortingStrategy}
                 >
-                  <button
-                    onClick={() => handleToggleCompletion(item)}
-                    className="mt-0.5 hover:opacity-75 transition"
-                  >
-                    {item.isCompleted ? (
-                      <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
-                    ) : (
-                      <Circle className="h-6 w-6 text-muted-foreground" />
-                    )}
-                  </button>
-                  <div className="flex-1 space-y-0.5">
-                    <p className={cn(
-                      "text-lg font-medium transition",
-                      item.isCompleted && "text-muted-foreground line-through"
-                    )}>
-                      {item.text}
-                    </p>
-                    {item.dueDate && (
-                      <p className="text-xs text-red-500 font-medium">
-                        {new Date(item.dueDate).toLocaleDateString()}
-                      </p>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => handleDeleteItem(item.id)}
-                    className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
-                    title="Delete"
-                  >
-                    <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          ))
-        )}
+                  {group.items.map((item) => (
+                    <DraggableItem 
+                      key={item.id}
+                      item={item}
+                      onToggleCompletion={handleToggleCompletion}
+                      onDeleteItem={handleDeleteItem}
+                    />
+                  ))}
+                </SortableContext>
+              </DroppableListGroup>
+            ))
+          )}
+        </div>
 
-        {filter !== "completed" && (
+        <DragOverlay>
+          {activeItem ? (
+            <DraggableItem 
+              item={activeItem}
+              onToggleCompletion={handleToggleCompletion}
+              onDeleteItem={handleDeleteItem}
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
+      {filter !== "completed" && filter !== "all" && (
             <form 
             onSubmit={handleCreateItem}
             className="flex items-center gap-x-3 py-3"
@@ -191,7 +351,6 @@ const FilterPage = () => {
             />
             </form>
         )}
-      </div>
     </div>
   );
 }

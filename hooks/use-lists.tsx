@@ -1,11 +1,22 @@
 import { create } from "zustand";
 import { List } from "@/db/schema";
 import { getLists } from "@/actions/lists";
+import { getItemsCounts } from "@/actions/items";
+
+interface ItemCounts {
+  today: number;
+  scheduled: number;
+  all: number;
+  completed: number;
+}
 
 interface ListsStore {
   lists: List[];
-  isLoading: boolean;
+  listLoading: boolean;
+  itemCounts: ItemCounts;
+  countsLoading: boolean;
   fetchLists: () => Promise<void>;
+  fetchItemCounts: () => Promise<void>;
   updateLocalList: (id: string, values: Partial<List>) => void;
   addLocalList: (list: List) => void;
   removeLocalList: (id: string) => void;
@@ -13,16 +24,30 @@ interface ListsStore {
 
 export const useLists = create<ListsStore>((set) => ({
   lists: [],
-  isLoading: false,
+  listLoading: false,
+  itemCounts: { today: 0, scheduled: 0, all: 0, completed: 0 },
+  countsLoading: false,
+
   fetchLists: async () => {
-    set({ isLoading: true });
+    set({ listLoading: true });
     try {
       const data = await getLists();
       set({ lists: data });
     } finally {
-      set({ isLoading: false });
+      set({ listLoading: false });
     }
   },
+
+  fetchItemCounts: async () => {
+    set({ countsLoading: true });
+    try {
+      const data = await getItemsCounts();
+      set({ itemCounts: data });
+    } finally {
+      set({ countsLoading: false });
+    }
+  },
+
   updateLocalList: (id, values) => {
     set((state) => ({
       lists: state.lists.map((list) => 
@@ -30,11 +55,13 @@ export const useLists = create<ListsStore>((set) => ({
       )
     }));
   },
+
   addLocalList: (list) => {
     set((state) => ({
       lists: [list, ...state.lists]
     }));
   },
+
   removeLocalList: (id) => {
     set((state) => ({
       lists: state.lists.filter((list) => list.id !== id)

@@ -24,7 +24,7 @@ import { useSearch } from "@/hooks/use-search";
 import { useSettings } from "@/hooks/use-settings";
 import { useLists } from "@/hooks/use-lists";
 import { createList, updateList, deleteList } from "@/actions/lists";
-import { getItemsCounts } from "@/actions/items";
+import { getItemsCounts, moveItem } from "@/actions/items";
 import { List } from "@/db/schema";
 import {
   DropdownMenu,
@@ -37,6 +37,7 @@ import {
 import { UserItem } from "./user-item";
 import { Item } from "./item";
 import { Navbar } from "./navbar";
+import { useDroppable } from "@dnd-kit/core";
 
 export const Navigation = () => {
   const router = useRouter();
@@ -284,50 +285,15 @@ export const Navigation = () => {
           <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>
           <div className="space-y-1 pb-4">
             {lists.map((list) => (
-                <Item 
+                <DroppableSidebarItem 
                     key={list.id}
-                    label={list.name}
-                    icon={ListIcon}
-                    color={list.color}
-                    onClick={() => router.push(`/lists/${list.id}`)}
-                    active={params.listId === list.id}
-                    actions={
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                          <div role="button" className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 p-0.5">
-                            <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent className="w-48" align="start" side="right" forceMount onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenuItem onClick={() => {
-                            const newName = prompt("Rename list", list.name);
-                            if (newName) onUpdateList(list.id, { name: newName });
-                          }}>
-                            Rename
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            onClick={() => onDeleteList(list.id)}
-                            className="text-red-500 focus:text-red-500"
-                          >
-                            Delete List
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <div className="p-2 grid grid-cols-5 gap-2">
-                            {colors.map((color) => (
-                              <div 
-                                key={color}
-                                onClick={() => onUpdateList(list.id, { color })}
-                                className={cn(
-                                  "h-5 w-5 rounded-full cursor-pointer border border-white/20",
-                                  list.color === color && "ring-2 ring-primary ring-offset-1 dark:ring-offset-neutral-800"
-                                )}
-                                style={{ backgroundColor: color }}
-                              />
-                            ))}
-                          </div>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    }
+                    list={list}
+                    onUpdateList={onUpdateList}
+                    onDeleteList={onDeleteList}
+                    router={router}
+                    params={params}
+                    ListIcon={ListIcon}
+                    colors={colors}
                 />
             ))}
             <Item
@@ -373,3 +339,74 @@ export const Navigation = () => {
     </>
   )
 }
+
+interface DroppableSidebarItemProps {
+  list: List;
+  onUpdateList: (id: string, values: Partial<{ name: string; color: string }>) => Promise<void>;
+  onDeleteList: (id: string) => Promise<void>;
+  router: any; // NextRouter
+  params: any; // useParams
+  ListIcon: any; // LucideIcon
+  colors: string[];
+}
+
+const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params, ListIcon, colors }: DroppableSidebarItemProps) => {
+  const {setNodeRef, isOver} = useDroppable({
+    id: list.id,
+    data: {
+      type: 'List',
+      listId: list.id,
+    },
+  });
+
+  return (
+    <div ref={setNodeRef} className={cn(
+      isOver && "ring-2 ring-blue-500 ring-offset-2"
+    )}>
+      <Item 
+          label={list.name}
+          icon={ListIcon}
+          color={list.color}
+          onClick={() => router.push(`/lists/${list.id}`)}
+          active={params.listId === list.id}
+          actions={
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                <div role="button" className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 p-0.5">
+                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48" align="start" side="right" forceMount onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem onClick={() => {
+                  const newName = prompt("Rename list", list.name);
+                  if (newName) onUpdateList(list.id, { name: newName });
+                }}>
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onDeleteList(list.id)}
+                  className="text-red-500 focus:text-red-500"
+                >
+                  Delete List
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <div className="p-2 grid grid-cols-5 gap-2">
+                  {colors.map((color) => (
+                    <div 
+                      key={color}
+                      onClick={() => onUpdateList(list.id, { color })}
+                      className={cn(
+                        "h-5 w-5 rounded-full cursor-pointer border border-white/20",
+                        list.color === color && "ring-2 ring-primary ring-offset-1 dark:ring-offset-neutral-800"
+                      )}
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          }
+      />
+    </div>
+  );
+};

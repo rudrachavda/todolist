@@ -1,27 +1,118 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getListById, updateList } from "@/actions/lists";
-import { getItemsByList, createItem, updateItem, deleteItem } from "@/actions/items";
+import { getItemsByList, createItem, updateItem, deleteItem, moveItem } from "@/actions/items";
 import { useLists } from "@/hooks/use-lists";
-import { List, Item } from "@/db/schema";
+import { List, Item as ItemSchema } from "@/db/schema";
 import { Plus, Circle, CheckCircle2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  UniqueIdentifier,
+  DragOverlay
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+
+interface DraggableItemProps {
+  item: ItemSchema;
+  onToggleCompletion: (item: ItemSchema) => void;
+  onDeleteItem: (id: string) => void;
+  wrapperRef?: React.Ref<HTMLDivElement>;
+}
+
+const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, wrapperRef }: DraggableItemProps) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({id: item.id, data: { item }});
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 100 : 'auto',
+    opacity: isDragging ? 0.7 : 1,
+  };
+
+  return (
+    <div 
+      ref={wrapperRef ? wrapperRef : setNodeRef} 
+      style={style} 
+      {...attributes} 
+      {...listeners}
+      className="group flex items-start gap-x-3 py-3 border-b border-secondary/50 last:border-0 relative"
+    >
+      <button
+        onClick={() => onToggleCompletion(item)}
+        className="mt-0.5 hover:opacity-75 transition"
+      >
+        {item.isCompleted ? (
+          <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
+        ) : (
+          <Circle className="h-6 w-6 text-muted-foreground" />
+        )}
+      </button>
+      <div className="flex-1 space-y-0.5">
+        <p className={cn(
+          "text-lg font-medium transition",
+          item.isCompleted && "text-muted-foreground line-through"
+        )}>
+          {item.text}
+        </p>
+        {item.dueDate && (
+          <p className="text-xs text-red-500 font-medium">
+            {new Date(item.dueDate).toLocaleDateString()}
+          </p>
+        )}
+      </div>
+      <button
+        onClick={() => onDeleteItem(item.id)}
+        className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
+        title="Delete"
+      >
+        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+      </button>
+    </div>
+  );
+}
 
 const ListIdPage = () => {
   const params = useParams();
   const listId = params.listId as string;
-  const [items, setItems] = useState<Item[]>([]);
+  const [items, setItems] = useState<ItemSchema[]>([]);
   const [newItemText, setNewItemText] = useState("");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
+  const [activeItem, setActiveItem] = useState<ItemSchema | null>(null);
 
   const { lists, updateLocalList } = useLists();
   
-  // Find the list from our global store to get live updates (like color)
   const list = lists.find(l => l.id === listId);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +156,7 @@ const ListIdPage = () => {
     setNewItemText("");
   };
 
-  const handleToggleCompletion = async (item: Item) => {
+  const handleToggleCompletion = async (item: ItemSchema) => {
     const updatedStatus = !item.isCompleted;
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, isCompleted: updatedStatus } : i));
     await updateItem(item.id, { isCompleted: updatedStatus });
@@ -81,6 +172,43 @@ const ListIdPage = () => {
       error: "Failed to delete reminder"
     });
   };
+
+  const handleDragStart = (event: any) => {
+    setActiveItem(event.active.data.current?.item);
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const {active, over} = event;
+    setActiveItem(null); // Clear active item
+
+    if (!over) return;
+
+    const activeItemData = active.data.current?.item;
+    const oldListId = activeItemData?.listId;
+
+    const overType = over.data.current?.type;
+    let targetListId: string | undefined;
+
+    if (overType === 'List') { // Dropped on a sidebar list item
+      targetListId = over.data.current?.listId;
+    } else if (overType === 'ListGroup' && over.data.current?.listId) { // Dropped on a list group heading in FilterPage
+      targetListId = over.data.current.listId;
+    }
+
+    if (activeItemData && targetListId && targetListId !== oldListId) {
+      const promise = moveItem(activeItemData.id, targetListId, oldListId)
+        .then(() => {
+          setItems(prev => prev.filter(item => item.id !== activeItemData.id)); // Remove from current view
+        });
+
+      toast.promise(promise, {
+        loading: "Moving reminder...",
+        success: "Reminder moved!",
+        error: "Failed to move reminder."
+      });
+    }
+  };
+
 
   if (!list) return null;
 
@@ -111,59 +239,52 @@ const ListIdPage = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto space-y-1">
-        {items.map((item) => (
-          <div 
-            key={item.id}
-            className="group flex items-start gap-x-3 py-3 border-b border-secondary/50 last:border-0"
+      <DndContext 
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex-1 overflow-y-auto space-y-1">
+          <SortableContext 
+            items={items.map(item => item.id)}
+            strategy={verticalListSortingStrategy}
           >
-            <button
-              onClick={() => handleToggleCompletion(item)}
-              className="mt-0.5 hover:opacity-75 transition"
-            >
-              {item.isCompleted ? (
-                <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
-              ) : (
-                <Circle className="h-6 w-6 text-muted-foreground" />
-              )}
-            </button>
-            <div className="flex-1 space-y-0.5">
-              <p className={cn(
-                "text-lg font-medium transition",
-                item.isCompleted && "text-muted-foreground line-through"
-              )}>
-                {item.text}
-              </p>
-              {item.dueDate && (
-                <p className="text-xs text-red-500 font-medium">
-                  {new Date(item.dueDate).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-            <button
-              onClick={() => handleDeleteItem(item.id)}
-              className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
-              title="Delete"
-            >
-              <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
-            </button>
-          </div>
-        ))}
+            {items.map((item) => (
+              <DraggableItem 
+                key={item.id}
+                item={item}
+                onToggleCompletion={handleToggleCompletion}
+                onDeleteItem={handleDeleteItem}
+              />
+            ))}
+          </SortableContext>
+        </div>
 
-        <form 
-          onSubmit={handleCreateItem}
-          className="flex items-center gap-x-3 py-3"
-        >
-          <Plus className="h-6 w-6 text-muted-foreground" />
-          <input 
+        <DragOverlay>
+          {activeItem ? (
+            <DraggableItem 
+              item={activeItem}
+              onToggleCompletion={handleToggleCompletion}
+              onDeleteItem={handleDeleteItem}
+            />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
+      <form 
+        onSubmit={handleCreateItem}
+        className="flex items-center gap-x-3 py-3"
+      >
+        <Plus className="h-6 w-6 text-muted-foreground" />
+        <input 
             autoFocus
             value={newItemText}
             onChange={(e) => setNewItemText(e.target.value)}
             placeholder="Add a reminder..."
             className="flex-1 bg-transparent border-none outline-none text-lg placeholder:text-muted-foreground/50"
-          />
-        </form>
-      </div>
+        />
+      </form>
     </div>
   );
 }
