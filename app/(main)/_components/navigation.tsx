@@ -228,7 +228,7 @@ export const Navigation = () => {
                     <div className="bg-blue-500 p-1.5 rounded-full text-white">
                         <Calendar className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{itemCounts.today}</span>
+                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.today}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Today</span>
             </div>
@@ -240,7 +240,7 @@ export const Navigation = () => {
                     <div className="bg-red-500 p-1.5 rounded-full text-white">
                         <Clock className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{itemCounts.scheduled}</span>
+                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.scheduled}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Scheduled</span>
             </div>
@@ -252,7 +252,7 @@ export const Navigation = () => {
                     <div className="bg-neutral-500 p-1.5 rounded-full text-white">
                         <Inbox className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{itemCounts.all}</span>
+                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.all}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">All</span>
             </div>
@@ -264,7 +264,7 @@ export const Navigation = () => {
                     <div className="bg-neutral-400 p-1.5 rounded-full text-white">
                         <CheckCircle2 className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo">{itemCounts.completed}</span>
+                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.completed}</span>
                 </div>
                 <span className="text-xs font-semibold text-muted-foreground">Completed</span>
             </div>

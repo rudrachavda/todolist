@@ -67,7 +67,7 @@ const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, w
         className="mt-0.5 hover:opacity-75 transition"
       >
         {item.isCompleted ? (
-          <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500/10" />
+          <CheckCircle2 className="h-6 w-6 text-green-500 fill-green-500" />
         ) : (
           <Circle className="h-6 w-6 text-muted-foreground" />
         )}
@@ -75,10 +75,15 @@ const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, w
       <div className="flex-1 space-y-0.5">
         <p className={cn(
           "text-lg font-medium transition",
-          item.isCompleted && "text-muted-foreground line-through"
+          item.isCompleted && "text-neutral-500 dark:text-[#646464]"
         )}>
           {item.text}
         </p>
+        {item.description && (
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {item.description}
+          </p>
+        )}
         {item.dueDate && (
           <p className="text-xs text-red-500 font-medium flex items-center gap-x-1">
             <CalendarIcon className="h-3 w-3" />
@@ -96,18 +101,31 @@ const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, w
               <CalendarIcon className="h-4 w-4 text-muted-foreground hover:text-blue-500" />
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-3" align="end">
-            <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium">Due Date & Time</label>
-              <input 
-                type="datetime-local" 
-                className="border rounded p-1 text-sm bg-background text-foreground"
-                value={item.dueDate ? new Date(item.dueDate).toISOString().slice(0, 16) : ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  onUpdateItem(item.id, { dueDate: val ? new Date(val).toISOString() : null });
-                }}
-              />
+          <PopoverContent className="w-64 p-3" align="end">
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Due Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  className="border rounded p-1.5 text-sm bg-background text-foreground"
+                  value={item.dueDate ? new Date(item.dueDate).toISOString().slice(0, 16) : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    onUpdateItem(item.id, { dueDate: val ? new Date(val).toISOString() : null });
+                  }}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-muted-foreground uppercase">Notes</label>
+                <textarea 
+                  placeholder="Add notes..."
+                  className="border rounded p-1.5 text-sm bg-background text-foreground resize-none h-20"
+                  value={item.description || ''}
+                  onChange={(e) => {
+                    onUpdateItem(item.id, { description: e.target.value || null });
+                  }}
+                />
+              </div>
             </div>
           </PopoverContent>
         </Popover>
@@ -128,6 +146,7 @@ const ListIdPage = () => {
   const listId = params.listId as string;
   const [items, setItems] = useState<ItemSchema[]>([]);
   const [newItemText, setNewItemText] = useState("");
+  const [showInput, setShowInput] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
   const [activeItem, setActiveItem] = useState<ItemSchema | null>(null);
@@ -187,6 +206,7 @@ const ListIdPage = () => {
     const newItem = await createItem(newItemText, listId);
     setItems(prev => [newItem, ...prev]);
     setNewItemText("");
+    setShowInput(false);
     fetchItemCounts(); 
   };
 
@@ -290,7 +310,14 @@ const ListIdPage = () => {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-1 overflow-y-auto space-y-1">
+        <div 
+          className="flex-1 overflow-y-auto space-y-1"
+          onDoubleClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowInput(true);
+            }
+          }}
+        >
           <SortableContext 
             items={items.map(item => item.id)}
             strategy={verticalListSortingStrategy}
@@ -319,19 +346,24 @@ const ListIdPage = () => {
         </DragOverlay>
       </DndContext>
 
-      <form 
-        onSubmit={handleCreateItem}
-        className="flex items-center gap-x-3 py-3"
-      >
-        <Plus className="h-6 w-6 text-muted-foreground" />
-        <input 
-            autoFocus
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            placeholder="Add a reminder..."
-            className="flex-1 bg-transparent border-none outline-none text-lg placeholder:text-muted-foreground/50"
-        />
-      </form>
+      {showInput && (
+        <form 
+          onSubmit={handleCreateItem}
+          className="flex items-center gap-x-3 py-3"
+        >
+          <Plus className="h-6 w-6 text-muted-foreground" />
+          <input 
+              autoFocus
+              value={newItemText}
+              onChange={(e) => setNewItemText(e.target.value)}
+              onBlur={() => {
+                if (!newItemText.trim()) setShowInput(false);
+              }}
+              placeholder="Add a reminder..."
+              className="flex-1 bg-transparent border-none outline-none text-lg placeholder:text-muted-foreground/50"
+          />
+        </form>
+      )}
     </div>
   );
 }

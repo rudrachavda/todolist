@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 
 import { Spinner } from "@/components/spinner";
 import { SearchCommand } from "@/components/search-command";
+import { SettingsModal } from "@/components/modals/settings-modal";
 import { Navigation } from "./_components/navigation";
 
 const MainLayout = ({
@@ -31,6 +32,7 @@ const MainLayout = ({
       <Navigation />
       <main className="flex-1 h-full overflow-y-auto">
         <SearchCommand />
+        <SettingsModal />
         {children}
       </main>
     </div>

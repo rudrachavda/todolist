@@ -74,6 +74,7 @@ app/(public) can be ignored for now and used later for shareable lists
 next things to do for this app 7/4/26
 - implement cleaner ui and interaction
     - implement dark mode
+    - description for reminder (similar to how you implemented the due date functionality)
     - make it so that a user just has to double click to add a reminder, and getting rid of the add a reminder input at the bottom.
     - make it so that users can move around the order of reminders in a list, regardless of due date
     - reminder rename on demand

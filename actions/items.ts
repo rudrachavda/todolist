@@ -76,7 +76,7 @@ export async function toggleItemCompletion(id: string, isCompleted: boolean) {
   revalidatePath("/", "layout");
 }
 
-export async function updateItem(id: string, values: Partial<{ text: string, isCompleted: boolean, dueDate: string | null, isDeleted: boolean }>) {
+export async function updateItem(id: string, values: Partial<{ text: string, isCompleted: boolean, dueDate: string | null, isDeleted: boolean, description: string | null }>) {
     console.log("updateItem called", { id, values });
     const result = await db.update(items)
         .set(values)
