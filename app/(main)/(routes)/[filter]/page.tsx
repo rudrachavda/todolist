@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
-import { getTodayItems, getScheduledItems, getAllItems, getCompletedItems, createItem, updateItem, deleteItem, moveItem } from "@/actions/items";
+import { getTodayItems, getScheduledItems, getAllItems, getCompletedItems, createItem, updateItem, deleteItem, moveItem, reorderItems } from "@/actions/items";
 import { Item, List } from "@/db/schema";
 import { Plus, Circle, CheckCircle2, Calendar, Clock, Inbox, CheckCircle, Trash2, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,7 +23,8 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-  useSortable
+  useSortable,
+  arrayMove
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { DraggableItem } from "@/app/(main)/_components/draggable-item";
@@ -247,6 +248,38 @@ const FilterPage = () => {
         success: "Reminder moved!",
         error: "Failed to move reminder."
       });
+      return;
+    }
+
+    if (active.id !== over.id) {
+       let contextItems = items;
+       if (filter === "all") {
+          const draggedItem = items.find(i => i.id === active.id);
+          contextItems = items.filter(i => i.listId === draggedItem?.listId);
+          contextItems.sort((a, b) => {
+             if (a.position === b.position) return new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime();
+             return (a.position || 0) - (b.position || 0);
+          });
+       } else {
+          contextItems = [...items];
+       }
+
+       const aIndex = contextItems.findIndex(i => i.id === active.id);
+       const oIndex = contextItems.findIndex(i => i.id === over.id);
+
+       if (aIndex !== -1 && oIndex !== -1) {
+          const newContextItems = arrayMove(contextItems, aIndex, oIndex);
+          
+          const updates = newContextItems.map((item, index) => ({
+             id: item.id,
+             position: index * 1000
+          }));
+
+          const promise = reorderItems(updates).then(async () => {
+             const updatedItems = await config.fetcher();
+             setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+          });
+       }
     }
   };
 

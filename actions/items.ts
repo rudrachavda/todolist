@@ -102,7 +102,8 @@ export async function getTodayItems() {
     const today = new Date().toISOString().split('T')[0];
     return db.select()
         .from(items)
-        .where(and(like(items.dueDate, `${today}%`), eq(items.userId, userId), eq(items.isDeleted, false)));
+        .where(and(like(items.dueDate, `${today}%`), eq(items.userId, userId), eq(items.isDeleted, false)))
+        .orderBy(asc(items.position), desc(items.createdAt));
 }
 
 export async function getAllItems() {
@@ -115,20 +116,23 @@ export async function getAllItems() {
     })
     .from(items)
     .leftJoin(lists, eq(items.listId, lists.id))
-    .where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, false)));
+    .where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, false)))
+    .orderBy(asc(items.position), desc(items.createdAt));
 }
 
 export async function getScheduledItems() {
     const today = new Date().toISOString().split('T')[0];
     return db.select()
         .from(items)
-        .where(and(gte(items.dueDate, today), eq(items.userId, userId), eq(items.isDeleted, false)));
+        .where(and(gte(items.dueDate, today), eq(items.userId, userId), eq(items.isDeleted, false)))
+        .orderBy(asc(items.position), desc(items.createdAt));
 }
 
 export async function getCompletedItems() {
     return db.select()
         .from(items)
-        .where(and(eq(items.isCompleted, true), eq(items.userId, userId), eq(items.isDeleted, false)));
+        .where(and(eq(items.isCompleted, true), eq(items.userId, userId), eq(items.isDeleted, false)))
+        .orderBy(asc(items.position), desc(items.createdAt));
 }
 
 export async function getItemsCounts() {
