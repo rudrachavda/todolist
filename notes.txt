@@ -69,3 +69,17 @@ app/(main) is our main components
 app/(marketing) is our landing and onboarding page for new users
 
 app/(public) can be ignored for now and used later for shareable lists
+
+
+next things to do for this app 7/4/26
+- implement cleaner ui and interaction
+    - implement dark mode
+    - make it so that a user just has to double click to add a reminder, and getting rid of the add a reminder input at the bottom.
+    - make it so that users can move around the order of reminders in a list, regardless of due date
+    - reminder rename on demand
+    - drag and drop in the sidebar, so a user can drag a reminder into the sidebar and move it to another list if they want too, or they can
+      even soft delete the reminder by dragging it on top of the recently deleted folder
+    - make an interaction for completing a reminder, where the bubble in the reminder just fills up and the color of the text becomes dark gray to show
+      irrelevancy
+    - fix search and its icon (low priority)
+    - implement an oauth

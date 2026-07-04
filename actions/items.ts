@@ -76,7 +76,7 @@ export async function toggleItemCompletion(id: string, isCompleted: boolean) {
   revalidatePath("/", "layout");
 }
 
-export async function updateItem(id: string, values: Partial<{ text: string, isCompleted: boolean, dueDate: string, isDeleted: boolean }>) {
+export async function updateItem(id: string, values: Partial<{ text: string, isCompleted: boolean, dueDate: string | null, isDeleted: boolean }>) {
     console.log("updateItem called", { id, values });
     const result = await db.update(items)
         .set(values)
@@ -90,7 +90,7 @@ export async function getTodayItems() {
     const today = new Date().toISOString().split('T')[0];
     return db.select()
         .from(items)
-        .where(and(eq(items.dueDate, today), eq(items.userId, userId), eq(items.isDeleted, false)));
+        .where(and(like(items.dueDate, `${today}%`), eq(items.userId, userId), eq(items.isDeleted, false)));
 }
 
 export async function getAllItems() {
@@ -123,7 +123,7 @@ export async function getItemsCounts() {
   const today = new Date().toISOString().split('T')[0];
   
   const [all] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false)));
-  const [todayCount] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.dueDate, today)));
+  const [todayCount] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), like(items.dueDate, `${today}%`)));
   const [scheduled] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), gte(items.dueDate, today)));
   const [completed] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, true)));
   

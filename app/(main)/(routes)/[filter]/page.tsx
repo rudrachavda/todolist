@@ -4,9 +4,10 @@ import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { getTodayItems, getScheduledItems, getAllItems, getCompletedItems, createItem, updateItem, deleteItem, moveItem } from "@/actions/items";
 import { Item, List } from "@/db/schema";
-import { Plus, Circle, CheckCircle2, Calendar, Clock, Inbox, CheckCircle, Trash2 } from "lucide-react";
+import { Plus, Circle, CheckCircle2, Calendar, Clock, Inbox, CheckCircle, Trash2, CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useLists } from "@/hooks/use-lists";
 import {
   DndContext, 
@@ -42,10 +43,11 @@ interface DraggableItemProps {
   item: ExtendedItem;
   onToggleCompletion: (item: ExtendedItem) => void;
   onDeleteItem: (id: string) => void;
+  onUpdateItem: (id: string, updates: Partial<ExtendedItem>) => void;
   wrapperRef?: React.Ref<HTMLDivElement>;
 }
 
-const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, wrapperRef }: DraggableItemProps) => {
+const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, wrapperRef }: DraggableItemProps) => {
   const {
     attributes,
     listeners,
@@ -88,18 +90,45 @@ const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, wrapperRef }: D
           {item.text}
         </p>
         {item.dueDate && (
-          <p className="text-xs text-red-500 font-medium">
-            {new Date(item.dueDate).toLocaleDateString()}
+          <p className="text-xs text-red-500 font-medium flex items-center gap-x-1">
+            <CalendarIcon className="h-3 w-3" />
+            {new Date(item.dueDate).toLocaleString(undefined, {
+              dateStyle: 'medium',
+              timeStyle: 'short'
+            })}
           </p>
         )}
       </div>
-      <button
-        onClick={() => onDeleteItem(item.id)}
-        className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-red-500/10 rounded-md"
-        title="Delete"
-      >
-        <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
-      </button>
+      <div className="flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition">
+        <Popover>
+          <PopoverTrigger asChild>
+            <button className="p-1.5 hover:bg-neutral-500/10 rounded-md" title="Set Due Date">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground hover:text-blue-500" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-3" align="end">
+            <div className="flex flex-col gap-2">
+              <label className="text-sm font-medium">Due Date & Time</label>
+              <input 
+                type="datetime-local" 
+                className="border rounded p-1 text-sm bg-background text-foreground"
+                value={item.dueDate ? new Date(item.dueDate).toISOString().slice(0, 16) : ''}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  onUpdateItem(item.id, { dueDate: val ? new Date(val).toISOString() : null });
+                }}
+              />
+            </div>
+          </PopoverContent>
+        </Popover>
+        <button
+          onClick={() => onDeleteItem(item.id)}
+          className="p-1.5 hover:bg-red-500/10 rounded-md"
+          title="Delete"
+        >
+          <Trash2 className="h-4 w-4 text-muted-foreground hover:text-red-500" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -258,6 +287,16 @@ const FilterPage = () => {
     });
   };
 
+  const handleUpdateItem = async (id: string, updates: Partial<ExtendedItem>) => {
+    // Optimistically update
+    setItems(prev => prev.map(i => i.id === id ? { ...i, ...updates } : i));
+    await updateItem(id, updates);
+    // Re-fetch to ensure order and lists are correct
+    const updatedItems = await config.fetcher();
+    setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+    fetchItemCounts();
+  };
+
   const handleDragStart = (event: any) => {
     setActiveItem(event.active.data.current?.item);
   };
@@ -341,6 +380,7 @@ const FilterPage = () => {
                       item={item}
                       onToggleCompletion={handleToggleCompletion}
                       onDeleteItem={handleDeleteItem}
+                      onUpdateItem={handleUpdateItem}
                     />
                   ))}
                 </SortableContext>
@@ -355,6 +395,7 @@ const FilterPage = () => {
               item={activeItem}
               onToggleCompletion={handleToggleCompletion}
               onDeleteItem={handleDeleteItem}
+              onUpdateItem={handleUpdateItem}
             />
           ) : null}
         </DragOverlay>
