@@ -31,7 +31,7 @@ export const Navbar = () => {
               <Link href="/sign-in">Log in</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="/sign-in">Get Better Notes free</Link>
+              <Link href="/sign-in">Get Reminders</Link>
             </Button>
           </>
         )}
@@ -39,7 +39,7 @@ export const Navbar = () => {
           <>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/documents">
-                Enter Better Notes
+                Open Reminders
               </Link>
             </Button>
           </>

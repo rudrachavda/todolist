@@ -13,11 +13,11 @@ export const Heading = () => {
   return (
     <div className="max-w-3xl space-y-4">
       <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold">
-        Your Ideas, Documents, & Plans. Unified. Welcome to <span className="underline">Better Notes</span>
+        Your tasks, reminders, and lists. Unified. Welcome to <span className="underline">Reminders</span>
       </h1>
-      <h3 className="text-base sm:text-xl md:text-2xl font-medium">
-        Better Notes is the connected workspace where <br />
-        better, faster work happens.
+      <h3 className="text-base sm:text-xl md:text-2xl font-medium text-muted-foreground">
+        Reminders is the beautifully simple workspace for <br />
+        your everyday tasks.
       </h3>
       {isLoading && (
         <div className="w-full flex items-center justify-center">
@@ -27,7 +27,7 @@ export const Heading = () => {
       {isAuthenticated && !isLoading && (
         <Button asChild>
           <Link href="/documents">
-            Enter Better Notes
+            Open Reminders
             <ArrowRight className="h-4 w-4 ml-2" />
           </Link>
         </Button>
@@ -35,7 +35,7 @@ export const Heading = () => {
       {!isAuthenticated && !isLoading && (
         <Button asChild>
           <Link href="/sign-in">
-            Get Better Notes free
+            Sign up
             <ArrowRight className="h-4 w-4 ml-2" />
           </Link>
         </Button>
