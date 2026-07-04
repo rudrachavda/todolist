@@ -290,11 +290,9 @@ export const Navigation = () => {
                 label="Add List"
             />
             <div className="pt-4 mt-4 border-t border-secondary-foreground/10">
-                <Item 
-                    label="Recently Deleted"
-                    icon={Trash2}
-                    onClick={() => router.push("/recently-deleted")}
-                    active={pathname === "/recently-deleted"}
+                <DroppableTrashItem
+                    router={router}
+                    pathname={pathname}
                 />
             </div>
           </div>
@@ -394,6 +392,28 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
               </DropdownMenuContent>
             </DropdownMenu>
           }
+      />
+    </div>
+  );
+};
+
+const DroppableTrashItem = ({ router, pathname }: { router: any, pathname: string }) => {
+  const {setNodeRef, isOver} = useDroppable({
+    id: "trash",
+    data: {
+      type: 'Trash',
+    },
+  });
+
+  return (
+    <div ref={setNodeRef} className={cn(
+      isOver && "ring-2 ring-red-500 ring-offset-2 rounded-sm"
+    )}>
+      <Item 
+          label="Recently Deleted"
+          icon={Trash2}
+          onClick={() => router.push("/recently-deleted")}
+          active={pathname === "/recently-deleted"}
       />
     </div>
   );

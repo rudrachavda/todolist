@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 export const lists = sqliteTable("lists", {
@@ -20,6 +20,7 @@ export const items = sqliteTable("items", {
   dueDate: text("dueDate"), 
   isCompleted: integer("isCompleted", { mode: "boolean" }).notNull().default(false),
   isDeleted: integer("isDeleted", { mode: "boolean" }).notNull().default(false),
+  position: real("position").default(0),
   createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`),
   updatedAt: text("updatedAt").default(sql`CURRENT_TIMESTAMP`),
 });

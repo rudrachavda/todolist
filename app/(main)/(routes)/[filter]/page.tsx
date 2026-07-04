@@ -219,6 +219,12 @@ const FilterPage = () => {
     const oldListId = activeItemData?.listId;
 
     const overType = over.data.current?.type;
+
+    if (overType === 'Trash' && activeItemData) {
+      handleDeleteItem(activeItemData.id);
+      return;
+    }
+
     let targetListId: string | undefined;
 
     if (overType === 'List') { // Dropped on a sidebar list item

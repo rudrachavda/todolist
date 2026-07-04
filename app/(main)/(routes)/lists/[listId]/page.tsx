@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import { getListById, updateList } from "@/actions/lists";
-import { getItemsByList, createItem, updateItem, deleteItem, moveItem } from "@/actions/items";
+import { getItemsByList, createItem, updateItem, deleteItem, moveItem, reorderItems } from "@/actions/items";
 import { useLists } from "@/hooks/use-lists";
 import { List, Item as ItemSchema } from "@/db/schema";
 import { Plus, Circle, CheckCircle2, Trash2, CalendarIcon } from "lucide-react";
@@ -23,6 +23,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  arrayMove
 } from '@dnd-kit/sortable';
 import { DraggableItem } from "@/app/(main)/_components/draggable-item";
 
@@ -136,6 +137,12 @@ const ListIdPage = () => {
     const oldListId = activeItemData?.listId;
 
     const overType = over.data.current?.type;
+
+    if (overType === 'Trash' && activeItemData) {
+      handleDeleteItem(activeItemData.id);
+      return;
+    }
+
     let targetListId: string | undefined;
 
     if (overType === 'List') { 
@@ -156,6 +163,25 @@ const ListIdPage = () => {
         success: "Reminder moved!",
         error: "Failed to move reminder."
       });
+      return;
+    }
+
+    // Handle reordering within the same list
+    if (active.id !== over.id) {
+      const activeIndex = items.findIndex((i) => i.id === active.id);
+      const overIndex = items.findIndex((i) => i.id === over.id);
+
+      if (activeIndex !== -1 && overIndex !== -1) {
+        const newItems = arrayMove(items, activeIndex, overIndex);
+        setItems(newItems);
+
+        const updates = newItems.map((item, index) => ({
+          id: item.id,
+          position: index * 1000
+        }));
+
+        await reorderItems(updates);
+      }
     }
   };
 
