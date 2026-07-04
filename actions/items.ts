@@ -5,9 +5,16 @@ import { items, lists } from "@/db/schema";
 import { eq, and, gte, lte, or, desc, asc, sql, like } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-const userId = "user_1"; // Shim user
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
+async function getUserId() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  return session.user.id;
+}
 export async function createItem(text: string, listId?: string, dueDate?: string) {
+  const userId = await getUserId();
   const [newItem] = await db.insert(items).values({
     text,
     listId,
@@ -20,6 +27,7 @@ export async function createItem(text: string, listId?: string, dueDate?: string
 }
 
 export async function getItemsByList(listId: string) {
+  const userId = await getUserId();
   return db.select()
     .from(items)
     .where(and(eq(items.listId, listId), eq(items.userId, userId), eq(items.isDeleted, false)))
@@ -63,6 +71,7 @@ export async function moveItem(id: string, newListId: string, oldListId?: string
   }
 }
 export async function getDeletedItems() {
+  const userId = await getUserId();
   return db.select()
     .from(items)
     .where(and(eq(items.userId, userId), eq(items.isDeleted, true)))
@@ -99,6 +108,7 @@ export async function reorderItems(updates: { id: string, position: number }[]) 
 }
 
 export async function getTodayItems() {
+    const userId = await getUserId();
     const today = new Date().toISOString().split('T')[0];
     return db.select()
         .from(items)
@@ -107,6 +117,7 @@ export async function getTodayItems() {
 }
 
 export async function getAllItems() {
+    const userId = await getUserId();
     return db.select({
       item: items,
       list: {
@@ -121,6 +132,7 @@ export async function getAllItems() {
 }
 
 export async function getScheduledItems() {
+    const userId = await getUserId();
     const today = new Date().toISOString().split('T')[0];
     return db.select()
         .from(items)
@@ -129,6 +141,7 @@ export async function getScheduledItems() {
 }
 
 export async function getCompletedItems() {
+    const userId = await getUserId();
     return db.select()
         .from(items)
         .where(and(eq(items.isCompleted, true), eq(items.userId, userId), eq(items.isDeleted, false)))
@@ -136,6 +149,7 @@ export async function getCompletedItems() {
 }
 
 export async function getItemsCounts() {
+  const userId = await getUserId();
   const today = new Date().toISOString().split('T')[0];
   
   const [all] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false)));
@@ -152,6 +166,7 @@ export async function getItemsCounts() {
 }
 
 export async function searchItems(query: string) {
+  const userId = await getUserId();
   const words = query.trim().split(/\s+/);
   if (words.length === 0) return [];
 

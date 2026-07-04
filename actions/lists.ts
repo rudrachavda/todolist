@@ -5,9 +5,16 @@ import { lists } from "@/db/schema";
 import { eq, desc } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
-const userId = "user_1"; // Shim user
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
+async function getUserId() {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) throw new Error("Unauthorized");
+  return session.user.id;
+}
 export async function createList(name: string, color: string, icon?: string) {
+  const userId = await getUserId();
   const [newList] = await db.insert(lists).values({
     name,
     color,
@@ -20,6 +27,7 @@ export async function createList(name: string, color: string, icon?: string) {
 }
 
 export async function getLists() {
+  const userId = await getUserId();
   return db.select()
     .from(lists)
     .where(eq(lists.userId, userId))

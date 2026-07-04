@@ -1,8 +1,7 @@
 "use client";
 
-import { useConvexAuth } from "convex/react";
+import { useConvexAuth } from "@/hooks/use-convex-shim";
 import { ArrowRight } from "lucide-react";
-import { SignInButton } from "@clerk/clerk-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
@@ -34,12 +33,12 @@ export const Heading = () => {
         </Button>
       )}
       {!isAuthenticated && !isLoading && (
-        <SignInButton mode="modal">
-          <Button>
+        <Button asChild>
+          <Link href="/sign-in">
             Get Better Notes free
             <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        </SignInButton>
+          </Link>
+        </Button>
       )}
     </div>
   )

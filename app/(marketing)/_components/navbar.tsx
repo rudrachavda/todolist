@@ -1,7 +1,6 @@
 "use client";
 
-import { useConvexAuth } from "convex/react";
-import { SignInButton, UserButton } from "@clerk/clerk-react";
+import { useConvexAuth } from "@/hooks/use-convex-shim";
 import Link from "next/link";
 
 import { useScrollTop } from "@/hooks/use-scroll-top";
@@ -28,16 +27,12 @@ export const Navbar = () => {
         )}
         {!isAuthenticated && !isLoading && (
           <>
-            <SignInButton mode="modal">
-              <Button variant="ghost" size="sm">
-                Log in
-              </Button>
-            </SignInButton>
-            <SignInButton mode="modal">
-              <Button size="sm">
-                Get Better Notes free
-              </Button>
-            </SignInButton>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/sign-in">Log in</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/sign-in">Get Better Notes free</Link>
+            </Button>
           </>
         )}
         {isAuthenticated && !isLoading && (
@@ -47,9 +42,6 @@ export const Navbar = () => {
                 Enter Better Notes
               </Link>
             </Button>
-            <UserButton
-              afterSignOutUrl="/"
-            />
           </>
         )}
         <ModeToggle />

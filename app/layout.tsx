@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { NextAuthSessionProvider } from '@/components/providers/session-provider'
 import { cn } from "@/lib/utils";
 
 import './globals.css'
@@ -50,16 +51,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.variable, haloGrotesk.variable, spaceGrotesk.variable, "font-sans")}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-          storageKey="reminders-theme"
-        >
-          <Toaster position="bottom-center" />
-          {children}
-        </ThemeProvider>
+        <NextAuthSessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+            storageKey="reminders-theme"
+          >
+            <Toaster position="bottom-center" />
+            {children}
+          </ThemeProvider>
+        </NextAuthSessionProvider>
       </body>
     </html>
   )

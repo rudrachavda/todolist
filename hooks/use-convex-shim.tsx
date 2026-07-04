@@ -20,9 +20,12 @@ export function useMutation(action: any) {
     };
 }
 
+import { useSession } from "next-auth/react";
+
 export function useConvexAuth() {
+    const { status } = useSession();
     return {
-        isAuthenticated: true,
-        isLoading: false,
+        isAuthenticated: status === "authenticated",
+        isLoading: status === "loading",
     };
 }
