@@ -32,6 +32,7 @@ interface DraggableItemProps {
   onDeleteItem: (id: string) => void;
   onUpdateItem: (id: string, updates: any) => void;
   wrapperRef?: React.Ref<HTMLDivElement>;
+  isOverlay?: boolean;
 }
 
 const itemVariants = {
@@ -39,7 +40,7 @@ const itemVariants = {
   show: { opacity: 1, y: 0, filter: 'blur(0px)', transitionEnd: { filter: "none" } }
 };
 
-export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, wrapperRef }: DraggableItemProps) => {
+export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, wrapperRef, isOverlay }: DraggableItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(item.text);
   const [description, setDescription] = useState(item.description || '');
@@ -56,6 +57,8 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
     transform,
     transition,
     isDragging,
+    active,
+    over,
   } = useSortable({id: item.id, data: { item }});
 
   const setRefs = (node: HTMLDivElement) => {
@@ -73,11 +76,19 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
   };
   
   const style = {
-    transform: CSS.Transform.toString(transform),
+    // We intentionally ignore `transform` here so items never physically shift during drag!
+    // The visual movement is handled entirely by the DragOverlay, while the list remains static.
     transition,
-    zIndex: isDragging ? 100 : 'auto',
-    opacity: isDragging ? 0.7 : 1,
+    zIndex: isDragging ? 0 : 'auto',
   };
+
+  const isOverItem = over?.id === item.id;
+  const activeIndex = active?.data?.current?.sortable?.index;
+  const overIndex = over?.data?.current?.sortable?.index;
+  
+  const dropIndicator = isOverItem && active?.id !== item.id
+    ? activeIndex > overIndex ? "top" : "bottom"
+    : null;
 
   const handleQuickDate = (type: string) => {
     const now = new Date();
@@ -141,12 +152,20 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
         // Prevent click from propagating if we are already editing
         if (isEditing) e.stopPropagation();
       }}
+      onDragStart={(e) => e.preventDefault()}
       className={cn(
         "group flex items-start gap-x-3 py-3 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0 relative",
-        "transition-colors duration-200 ease-in-out",
-        isDragging && "opacity-50"
+        "transition-colors duration-200 ease-in-out px-2 -mx-2",
+        isDragging && !isOverlay && "bg-zinc-100 dark:bg-zinc-800/50 rounded-lg opacity-60 border-transparent",
+        isOverlay && "bg-white/70 dark:bg-[#1d1d1d]/70 backdrop-blur-md shadow-xl rounded-lg scale-[1.02] border-transparent"
       )}
     >
+      {dropIndicator === 'top' && (
+        <div className="absolute top-[-1px] left-0 right-0 h-[2px] bg-blue-500 rounded-full z-50 pointer-events-none" />
+      )}
+      {dropIndicator === 'bottom' && (
+        <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-blue-500 rounded-full z-50 pointer-events-none" />
+      )}
       <button
         onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {

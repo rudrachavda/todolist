@@ -245,16 +245,7 @@ const ListIdPage = () => {
           </SortableContext>
         </div>
 
-        <DragOverlay>
-          {activeItem ? (
-            <DraggableItem 
-              item={activeItem}
-              onToggleCompletion={handleToggleCompletion}
-              onDeleteItem={handleDeleteItem}
-              onUpdateItem={handleUpdateItem}
-            />
-          ) : null}
-        </DragOverlay>
+
       </DndContext>
 
       {showInput && (

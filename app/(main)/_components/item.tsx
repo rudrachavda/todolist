@@ -101,26 +101,26 @@ export const Item = ({
             >
               <div
                 role="button"
-                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300/50 dark:hover:bg-neutral-600/50 transition-colors"
+                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-md hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 transition-colors p-[2px]"
               >
-                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+                <MoreHorizontal className="h-4 w-4 text-zinc-400 dark:text-zinc-500" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              className="w-60"
+              className="w-48 z-[99999]"
               align="start"
               side="right"
               forceMount
             >
               <DropdownMenuItem
-                className="group hover:bg-red-300 dark:hover:bg-red-300/10 text-muted-foreground hover:text-red-600 focus:text-red-600"
+                className="group cursor-pointer text-xs font-medium text-red-600 dark:text-red-400 focus:bg-red-50 dark:focus:bg-red-950/30 focus:text-red-700 dark:focus:text-red-300 transition-colors"
               >
-                <Trash className="h-4 w-4 mr-2" />
-                Delete
+                <Trash className="h-3.5 w-3.5 mr-2" />
+                Delete List
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <div className="text-xs text-muted-foreground p-2">
-                Last edited: Just now
+              <div className="text-[10px] font-medium tracking-[0.005em] text-[#646464] dark:text-zinc-500 p-2 text-center">
+                Last edited just now
               </div>
             </DropdownMenuContent>
           </DropdownMenu>

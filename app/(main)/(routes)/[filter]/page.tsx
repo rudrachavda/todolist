@@ -272,12 +272,27 @@ const FilterPage = () => {
        if (aIndex !== -1 && oIndex !== -1) {
           const newContextItems = arrayMove(contextItems, aIndex, oIndex);
           
+          // Optimistic update
+          if (filter === "all") {
+            const listId = newContextItems[0]?.listId;
+            const newItems = items.map(item => {
+              if (item.listId === listId) {
+                const oldIndex = contextItems.findIndex(i => i.id === item.id);
+                return newContextItems[oldIndex];
+              }
+              return item;
+            });
+            setItems(newItems);
+          } else {
+            setItems(newContextItems);
+          }
+          
           const updates = newContextItems.map((item, index) => ({
              id: item.id,
              position: index * 1000
           }));
 
-          const promise = reorderItems(updates).then(async () => {
+          reorderItems(updates).then(async () => {
              const updatedItems = await config.fetcher();
              setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
           });
@@ -358,16 +373,7 @@ const FilterPage = () => {
           )}
         </motion.div>
 
-        <DragOverlay>
-          {activeItem ? (
-            <DraggableItem 
-              item={activeItem}
-              onToggleCompletion={handleToggleCompletion}
-              onDeleteItem={handleDeleteItem}
-              onUpdateItem={handleUpdateItem}
-            />
-          ) : null}
-        </DragOverlay>
+
       </DndContext>
 
       {filter !== "completed" && filter !== "all" && showInput && (
