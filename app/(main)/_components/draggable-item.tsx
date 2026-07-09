@@ -148,6 +148,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
       )}
     >
       <button
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => {
           e.stopPropagation();
           onToggleCompletion(item);
@@ -162,23 +163,32 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
       </button>
       
       {!isEditing ? (
-        <div 
-          className="flex-1 cursor-text min-w-0 flex flex-col"
-          onClick={() => setIsEditing(true)}
-        >
-          <p className={cn(
-            "text-sm font-medium tracking-[0.005em] leading-[22px] h-[22px] text-[#1d1d1d] dark:text-zinc-100 dark:antialiased transition-colors truncate p-0 m-0",
-            item.isCompleted && "text-[#a1a1a1] dark:text-[#646464] line-through decoration-[#a1a1a1]/30 dark:decoration-[#646464]/30"
-          )}>
+        <div className="flex-1 min-w-0 flex flex-col">
+          <p 
+            className={cn(
+              "text-sm font-medium tracking-[0.005em] leading-[22px] h-[22px] text-[#1d1d1d] dark:text-zinc-100 dark:antialiased transition-colors truncate p-0 m-0 cursor-text self-start max-w-full",
+              item.isCompleted && "text-[#a1a1a1] dark:text-[#646464] line-through decoration-[#a1a1a1]/30 dark:decoration-[#646464]/30"
+            )}
+            onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
             {item.text}
           </p>
           {item.description && (
-            <p className="text-xs tracking-[0.005em] leading-relaxed text-[#646464] dark:text-zinc-400 line-clamp-2 mt-0.5 p-0 m-0">
+            <p 
+              className="text-xs tracking-[0.005em] leading-relaxed text-[#646464] dark:text-zinc-400 line-clamp-2 mt-0.5 p-0 m-0 cursor-text self-start max-w-full"
+              onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               {item.description}
             </p>
           )}
           {item.dueDate && (
-            <div className="mt-2.5 flex items-center gap-x-2">
+            <div 
+              className="mt-2.5 flex items-center gap-x-2 self-start cursor-pointer"
+              onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               <div className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
                 <CalendarIcon className="h-3 w-3 shrink-0" />
                 <span className="tabular-nums">
