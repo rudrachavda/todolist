@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { CustomDatePicker } from "./custom-date-picker";
 
 export interface SharedItemProps {
   id: string;
@@ -44,6 +45,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
   const [description, setDescription] = useState(item.description || '');
   const [dueDate, setDueDate] = useState(item.dueDate ? new Date(item.dueDate).toISOString().slice(0, 16) : '');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
   
   const ref = useRef<HTMLDivElement>(null);
 
@@ -213,7 +215,15 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
             rows={2}
           />
           <div className="flex items-center gap-x-2 mt-2.5">
-            <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
+            <DropdownMenu 
+              open={isDropdownOpen} 
+              onOpenChange={(open) => {
+                setIsDropdownOpen(open);
+                if (!open) {
+                  setTimeout(() => setShowCustomPicker(false), 200);
+                }
+              }}
+            >
               <DropdownMenuTrigger asChild>
                 <div className="flex items-center gap-x-2 cursor-pointer">
                   {!dueDate ? (
@@ -238,33 +248,37 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
                   )}
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-56 z-[99999]" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => handleQuickDate('today')} className="text-xs font-medium cursor-pointer">
-                  Today
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleQuickDate('tomorrow')} className="text-xs font-medium cursor-pointer">
-                  Tomorrow
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleQuickDate('weekend')} className="text-xs font-medium cursor-pointer">
-                  This Weekend
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleQuickDate('next_week')} className="text-xs font-medium cursor-pointer">
-                  Next Week
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <div className="p-2" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="datetime-local"
-                    className="w-full bg-transparent border-[0.5px] border-zinc-200 dark:border-zinc-800 rounded-md px-2 py-1.5 text-xs font-medium text-[#1d1d1d] dark:text-zinc-100 outline-none focus:border-zinc-400 dark:focus:border-zinc-600 transition-colors"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') handleSave();
-                      e.stopPropagation();
-                    }}
-                  />
-                </div>
+              <DropdownMenuContent align="start" className="w-auto z-[99999]" onClick={(e) => e.stopPropagation()}>
+                {!showCustomPicker ? (
+                  <div className="w-56">
+                    <DropdownMenuItem onClick={() => handleQuickDate('today')} className="text-xs font-medium cursor-pointer">
+                      Today
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleQuickDate('tomorrow')} className="text-xs font-medium cursor-pointer">
+                      Tomorrow
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleQuickDate('weekend')} className="text-xs font-medium cursor-pointer">
+                      This Weekend
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleQuickDate('next_week')} className="text-xs font-medium cursor-pointer">
+                      Next Week
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onSelect={(e) => {
+                        e.preventDefault();
+                        setShowCustomPicker(true);
+                      }} 
+                      className="text-xs font-medium cursor-pointer"
+                    >
+                      Custom...
+                    </DropdownMenuItem>
+                  </div>
+                ) : (
+                  <div className="p-1" onClick={(e) => e.stopPropagation()}>
+                    <CustomDatePicker value={dueDate} onChange={setDueDate} />
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
