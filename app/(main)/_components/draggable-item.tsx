@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Circle, CheckCircle2, Trash2, CalendarIcon } from "lucide-react";
+import { Circle, CheckCircle2, Trash2, CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -262,17 +262,41 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
                     </button>
                   ) : (
                     <>
-                      <button className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 transition-colors duration-200 hover:bg-zinc-950 hover:text-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                      <div className="group/pill inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 pl-2.5 pr-1 py-1 transition-colors duration-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-medium text-zinc-900 dark:text-zinc-100">
                         <CalendarIcon className="h-3 w-3 shrink-0" />
                         <span className="tabular-nums">
                           {new Date(dueDate).toLocaleDateString(undefined, { dateStyle: 'medium' })}
                         </span>
-                      </button>
-                      <button className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 transition-colors duration-200 hover:bg-zinc-950 hover:text-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                        <div 
+                          role="button"
+                          className="ml-0.5 rounded-full p-0.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDueDate('');
+                          }}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
+                          <X className="h-3 w-3 opacity-50 group-hover/pill:opacity-100 text-zinc-500 dark:text-zinc-400" />
+                        </div>
+                      </div>
+                      <div className="group/pill inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 pl-2.5 pr-1.5 py-1 transition-colors duration-200 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-xs font-medium text-zinc-900 dark:text-zinc-100">
                         <span className="tabular-nums">
                           {new Date(dueDate).toLocaleTimeString(undefined, { timeStyle: 'short' })}
                         </span>
-                      </button>
+                        <div 
+                          role="button"
+                          className="ml-0.5 rounded-full p-0.5 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            setDueDate('');
+                          }}
+                          onPointerDown={(e) => e.stopPropagation()}
+                        >
+                          <X className="h-3 w-3 opacity-50 group-hover/pill:opacity-100 text-zinc-500 dark:text-zinc-400" />
+                        </div>
+                      </div>
                     </>
                   )}
                 </div>
