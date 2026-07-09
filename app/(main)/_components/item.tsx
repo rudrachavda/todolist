@@ -66,8 +66,8 @@ export const Item = ({
         paddingLeft: level ? `${(level * 12) + 12}px` : "12px"
       }}
       className={cn(
-        "group min-h-[27px] text-sm py-1 pr-3 w-full hover:bg-primary/5 flex items-center text-muted-foreground font-medium",
-        active && "bg-primary/5 text-primary"
+        "group min-h-[27px] text-sm font-medium tracking-[0.005em] leading-snug py-1.5 pr-3 w-full hover:bg-zinc-100 dark:hover:bg-zinc-800/50 flex items-center text-[#646464] dark:text-[#a1a1a1] transition-colors rounded-md",
+        active && "bg-zinc-100 dark:bg-zinc-800/50 text-[#1d1d1d] dark:text-zinc-100 dark:antialiased"
       )}
     >
       {documentIcon ? (
@@ -101,7 +101,7 @@ export const Item = ({
             >
               <div
                 role="button"
-                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600"
+                className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300/50 dark:hover:bg-neutral-600/50 transition-colors"
               >
                 <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
               </div>

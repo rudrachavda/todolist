@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
 import { getTodayItems, getScheduledItems, getAllItems, getCompletedItems, createItem, updateItem, deleteItem, moveItem, reorderItems } from "@/actions/items";
@@ -60,7 +62,7 @@ const DroppableListGroup = ({ list, children }: DroppableListGroupProps) => {
       className={cn("mb-4", isOver && "ring-2 ring-blue-500 ring-offset-2")}
     >
       {list && (
-        <h2 className="text-2xl font-bold mb-2" style={{ color: list.color }}>
+        <h2 className="text-sm font-medium tracking-[0.005em] leading-none mb-4" style={{ color: list.color }}>
           {list.name}
         </h2>
       )}
@@ -285,16 +287,26 @@ const FilterPage = () => {
 
   if (!config) return <div className="p-8">Invalid Filter</div>;
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
   return (
     <div className="h-full flex flex-col p-8 space-y-6">
       <div className="flex items-center gap-x-3">
         <h1 
-          className="text-4xl font-bold"
+          className="text-4xl font-bold tracking-tight"
           style={{ color: config.color }}
         >
           {config.label}
         </h1>
-        <div className="ml-auto text-4xl font-light opacity-50">
+        <div className="ml-auto text-4xl font-light opacity-50 tabular-nums">
           {items.length}
         </div>
       </div>
@@ -305,8 +317,11 @@ const FilterPage = () => {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div 
-          className="flex-1 overflow-y-auto space-y-1"
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="flex-1 overflow-y-auto space-y-1 pb-20"
           onDoubleClick={(e) => {
             if (e.target === e.currentTarget && filter !== "completed" && filter !== "all") {
               setShowInput(true);
@@ -341,7 +356,7 @@ const FilterPage = () => {
               </DroppableListGroup>
             ))
           )}
-        </div>
+        </motion.div>
 
         <DragOverlay>
           {activeItem ? (
@@ -369,7 +384,7 @@ const FilterPage = () => {
                   if (!newItemText.trim()) setShowInput(false);
                 }}
                 placeholder="Add a reminder..."
-                className="flex-1 bg-transparent border-none outline-none text-lg placeholder:text-muted-foreground/50"
+                className="flex-1 bg-transparent border-none outline-none text-sm font-medium tracking-[0.005em] leading-snug text-[#1d1d1d] dark:text-zinc-100 dark:antialiased placeholder:text-[#a1a1a1] dark:placeholder:text-[#646464]"
             />
             </form>
         )}
