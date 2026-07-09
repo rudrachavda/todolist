@@ -62,7 +62,7 @@ const DroppableListGroup = ({ list, children }: DroppableListGroupProps) => {
       className={cn("mb-4", isOver && "ring-2 ring-blue-500 ring-offset-2")}
     >
       {list && (
-        <h2 className="text-sm font-medium tracking-[0.005em] leading-none mb-4" style={{ color: list.color }}>
+        <h2 className="text-sm font-medium tracking-[0.005em] leading-none mb-4 px-8 pt-4" style={{ color: list.color }}>
           {list.name}
         </h2>
       )}
@@ -303,8 +303,8 @@ const FilterPage = () => {
   if (!config) return <div className="p-8">Invalid Filter</div>;
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-6">
-      <div className="flex items-center gap-x-3">
+    <div className="h-full flex flex-col">
+      <div className="flex items-center gap-x-3 px-8 pt-8 pb-4 shrink-0">
         <h1 
           className="text-4xl font-bold tracking-tight"
           style={{ color: config.color }}
@@ -367,7 +367,7 @@ const FilterPage = () => {
       {filter !== "completed" && filter !== "all" && showInput && (
             <form 
             onSubmit={handleCreateItem}
-            className="flex items-center gap-x-3 py-3"
+            className="flex items-center gap-x-3 py-3 px-8 shrink-0"
             >
             <Plus className="h-6 w-6 text-muted-foreground" />
             <input 

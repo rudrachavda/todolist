@@ -149,9 +149,9 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
       onDragStart={(e) => e.preventDefault()}
       className={cn(
         "group flex items-start gap-x-3 py-3 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0 relative",
-        "transition-colors duration-200 ease-in-out px-2 -mx-2",
+        "transition-colors duration-200 ease-in-out px-8",
         isDragging && !isOverlay && "bg-zinc-100 dark:bg-zinc-800/50 rounded-lg opacity-60 border-transparent",
-        isOverlay && "bg-white/70 dark:bg-[#1d1d1d]/70 backdrop-blur-md shadow-xl rounded-lg scale-[1.02] border-transparent"
+        isOverlay && "bg-white/70 dark:bg-[#1d1d1d]/70 backdrop-blur-md shadow-xl scale-[1.02] border-transparent"
       )}
     >
       {dropIndicator === 'top' && (

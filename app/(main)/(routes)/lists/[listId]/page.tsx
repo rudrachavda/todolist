@@ -189,8 +189,8 @@ const ListIdPage = () => {
   if (!list) return null;
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-6">
-      <div className="flex items-center gap-x-3 group min-h-[48px]">
+    <div className="h-full flex flex-col">
+      <div className="flex items-center gap-x-3 group min-h-[48px] px-8 pt-8 pb-4 shrink-0">
         {isEditingTitle ? (
           <input
             autoFocus
@@ -252,7 +252,7 @@ const ListIdPage = () => {
       {showInput && (
         <form 
           onSubmit={handleCreateItem}
-          className="flex items-center gap-x-3 py-3"
+          className="flex items-center gap-x-3 py-3 px-8 shrink-0"
         >
           <Plus className="h-6 w-6 text-muted-foreground" />
           <input 
