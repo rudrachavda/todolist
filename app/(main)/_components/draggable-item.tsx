@@ -90,7 +90,11 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
     const now = new Date();
     switch (type) {
       case 'today':
-        now.setHours(17, 0, 0, 0); // Today 5 PM
+        if (now.getHours() >= 17) {
+          now.setHours(now.getHours() + 1, 0, 0, 0); // Next hour if past 5 PM
+        } else {
+          now.setHours(17, 0, 0, 0); // Today 5 PM
+        }
         break;
       case 'tomorrow':
         now.setDate(now.getDate() + 1);
@@ -196,29 +200,46 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
               {item.description}
             </p>
           )}
-          {item.dueDate && (
-            <div 
-              className="mt-2.5 flex items-center gap-x-2 self-start cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+          <div className={cn("flex items-center gap-x-2 self-start", item.dueDate ? "mt-2.5" : "mt-1.5")}>
+            {item.dueDate && (
+              <div 
+                className="flex items-center gap-x-2 cursor-pointer"
+                onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+                onPointerDown={(e) => e.stopPropagation()}
+              >
+                <div className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+                  <CalendarIcon className="h-3 w-3 shrink-0" />
+                  <span className="tabular-nums">
+                    {new Date(item.dueDate).toLocaleDateString(undefined, {
+                      dateStyle: 'medium'
+                    })}
+                  </span>
+                </div>
+                <div className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
+                  <span className="tabular-nums">
+                    {new Date(item.dueDate).toLocaleTimeString(undefined, {
+                      timeStyle: 'short'
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+            
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteItem(item.id);
+              }}
               onPointerDown={(e) => e.stopPropagation()}
+              className={cn(
+                "opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-full bg-zinc-100 hover:bg-red-100 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-900/30 dark:hover:text-red-400 text-[#a1a1a1] dark:text-[#646464] shrink-0",
+                item.dueDate ? "h-[24px] w-[24px]" : "h-6 w-6"
+              )}
+              title="Delete"
             >
-              <div className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
-                <CalendarIcon className="h-3 w-3 shrink-0" />
-                <span className="tabular-nums">
-                  {new Date(item.dueDate).toLocaleDateString(undefined, {
-                    dateStyle: 'medium'
-                  })}
-                </span>
-              </div>
-              <div className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
-                <span className="tabular-nums">
-                  {new Date(item.dueDate).toLocaleTimeString(undefined, {
-                    timeStyle: 'short'
-                  })}
-                </span>
-              </div>
-            </div>
-          )}
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex-1 min-w-0 flex flex-col">
@@ -298,16 +319,16 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
               <DropdownMenuContent align="start" className="w-auto z-[99999]" onClick={(e) => e.stopPropagation()}>
                 {!showCustomPicker ? (
                   <div className="w-56">
-                    <DropdownMenuItem onClick={() => handleQuickDate('today')} className="text-xs font-medium cursor-pointer">
+                    <DropdownMenuItem onSelect={() => handleQuickDate('today')} className="text-xs font-medium cursor-pointer">
                       Today
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleQuickDate('tomorrow')} className="text-xs font-medium cursor-pointer">
+                    <DropdownMenuItem onSelect={() => handleQuickDate('tomorrow')} className="text-xs font-medium cursor-pointer">
                       Tomorrow
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleQuickDate('weekend')} className="text-xs font-medium cursor-pointer">
+                    <DropdownMenuItem onSelect={() => handleQuickDate('weekend')} className="text-xs font-medium cursor-pointer">
                       This Weekend
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleQuickDate('next_week')} className="text-xs font-medium cursor-pointer">
+                    <DropdownMenuItem onSelect={() => handleQuickDate('next_week')} className="text-xs font-medium cursor-pointer">
                       Next Week
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -332,18 +353,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
         </div>
       )}
 
-      {!isEditing && (
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onDeleteItem(item.id);
-          }}
-          className="opacity-0 group-hover:opacity-100 transition p-1.5 hover:bg-zinc-200/50 dark:hover:bg-zinc-800/50 rounded-md shrink-0 ml-2"
-          title="Delete"
-        >
-          <Trash2 className="h-4 w-4 text-[#a1a1a1] dark:text-[#646464] hover:text-[#1d1d1d] dark:hover:text-zinc-100" />
-        </button>
-      )}
+
     </div>
   );
 };
