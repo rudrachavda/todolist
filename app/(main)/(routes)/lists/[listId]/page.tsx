@@ -233,10 +233,11 @@ const ListIdPage = () => {
             items={items.map(item => item.id)}
             strategy={verticalListSortingStrategy}
           >
-            {items.map((item) => (
+            {items.map((item, index) => (
               <DraggableItem 
                 key={item.id}
                 item={item}
+                index={index}
                 onToggleCompletion={handleToggleCompletion}
                 onDeleteItem={handleDeleteItem}
                 onUpdateItem={handleUpdateItem}

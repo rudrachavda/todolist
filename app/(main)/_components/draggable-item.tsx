@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useOnClickOutside } from "usehooks-ts";
-import { motion } from "framer-motion";
+
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -33,14 +33,10 @@ interface DraggableItemProps {
   onUpdateItem: (id: string, updates: any) => void;
   wrapperRef?: React.Ref<HTMLDivElement>;
   isOverlay?: boolean;
+  index?: number;
 }
 
-const itemVariants = {
-  hidden: { opacity: 0, y: 12, filter: 'blur(12px)' },
-  show: { opacity: 1, y: 0, filter: 'blur(0px)', transitionEnd: { filter: "none" } }
-};
-
-export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, wrapperRef, isOverlay }: DraggableItemProps) => {
+export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdateItem, wrapperRef, isOverlay, index }: DraggableItemProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(item.text);
   const [description, setDescription] = useState(item.description || '');
@@ -141,9 +137,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
   };
 
   return (
-    <motion.div 
-      variants={itemVariants}
-      transition={{ type: "spring", damping: 25, stiffness: 200 }}
+    <div 
       ref={setRefs} 
       style={style} 
       {...attributes} 
@@ -350,6 +344,6 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
           <Trash2 className="h-4 w-4 text-[#a1a1a1] dark:text-[#646464] hover:text-[#1d1d1d] dark:hover:text-zinc-100" />
         </button>
       )}
-    </motion.div>
+    </div>
   );
 };

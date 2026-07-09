@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+
 
 import { useEffect, useState, useMemo } from "react";
 import { useParams } from "next/navigation";
@@ -302,16 +302,6 @@ const FilterPage = () => {
 
   if (!config) return <div className="p-8">Invalid Filter</div>;
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
   return (
     <div className="h-full flex flex-col p-8 space-y-6">
       <div className="flex items-center gap-x-3">
@@ -332,10 +322,7 @@ const FilterPage = () => {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
+        <div 
           className="flex-1 overflow-y-auto space-y-1 pb-20"
           onDoubleClick={(e) => {
             if (e.target === e.currentTarget && filter !== "completed" && filter !== "all") {
@@ -362,6 +349,7 @@ const FilterPage = () => {
                     <DraggableItem 
                       key={item.id}
                       item={item}
+                      index={items.findIndex(i => i.id === item.id)}
                       onToggleCompletion={handleToggleCompletion}
                       onDeleteItem={handleDeleteItem}
                       onUpdateItem={handleUpdateItem}
@@ -371,7 +359,7 @@ const FilterPage = () => {
               </DroppableListGroup>
             ))
           )}
-        </motion.div>
+        </div>
 
 
       </DndContext>
