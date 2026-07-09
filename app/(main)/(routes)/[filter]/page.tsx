@@ -48,19 +48,8 @@ interface DroppableListGroupProps {
 }
 
 const DroppableListGroup = ({ list, children }: DroppableListGroupProps) => {
-  const {setNodeRef, isOver} = useDroppable({
-    id: list?.id || 'no-list-items',
-    data: {
-      type: 'ListGroup',
-      listId: list?.id,
-    },
-  });
-
   return (
-    <div 
-      ref={setNodeRef} 
-      className={cn("mb-4", isOver && "ring-2 ring-blue-500 ring-offset-2")}
-    >
+    <div className="mb-4">
       {list && (
         <h2 className="text-sm font-medium tracking-[0.005em] leading-none mb-4 px-8 pt-4" style={{ color: list.color }}>
           {list.name}
@@ -232,11 +221,9 @@ const FilterPage = () => {
 
     if (overType === 'List') { // Dropped on a sidebar list item
       targetListId = over.data.current?.listId;
-    } else if (overType === 'ListGroup' && over.data.current?.listId) { // Dropped on a list group heading in FilterPage
-      targetListId = over.data.current.listId;
     }
 
-    if (activeItemData && targetListId && targetListId !== oldListId) {
+    if (activeItemData && targetListId && targetListId !== oldListId && overType === 'List') {
       const promise = moveItem(activeItemData.id, targetListId, oldListId)
         .then(async () => {
           // Re-fetch all items for the current filter to reflect the move
@@ -254,48 +241,86 @@ const FilterPage = () => {
     }
 
     if (active.id !== over.id) {
-       let contextItems = items;
-       if (filter === "all") {
-          const draggedItem = items.find(i => i.id === active.id);
-          contextItems = items.filter(i => i.listId === draggedItem?.listId);
-          contextItems.sort((a, b) => {
-             if (a.position === b.position) return new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime();
-             return (a.position || 0) - (b.position || 0);
-          });
-       } else {
-          contextItems = [...items];
-       }
+       const activeItem = items.find(i => i.id === active.id);
+       const overItem = items.find(i => i.id === over.id);
 
-       const aIndex = contextItems.findIndex(i => i.id === active.id);
-       const oIndex = contextItems.findIndex(i => i.id === over.id);
+       if (activeItem && overItem) {
+         if (activeItem.listId === overItem.listId) {
+           // Same list reorder
+           let contextItems = items;
+           if (filter === "all") {
+              contextItems = items.filter(i => i.listId === activeItem.listId);
+              contextItems.sort((a, b) => {
+                 if (a.position === b.position) return new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime();
+                 return (a.position || 0) - (b.position || 0);
+              });
+           } else {
+              contextItems = [...items];
+           }
 
-       if (aIndex !== -1 && oIndex !== -1) {
-          const newContextItems = arrayMove(contextItems, aIndex, oIndex);
-          
-          // Optimistic update
-          if (filter === "all") {
-            const listId = newContextItems[0]?.listId;
-            const newItems = items.map(item => {
-              if (item.listId === listId) {
-                const oldIndex = contextItems.findIndex(i => i.id === item.id);
-                return newContextItems[oldIndex];
+           const aIndex = contextItems.findIndex(i => i.id === active.id);
+           const oIndex = contextItems.findIndex(i => i.id === over.id);
+
+           if (aIndex !== -1 && oIndex !== -1) {
+              const newContextItems = arrayMove(contextItems, aIndex, oIndex);
+              
+              if (filter === "all") {
+                const newItems = items.map(item => {
+                  if (item.listId === activeItem.listId) {
+                    const oldIndex = contextItems.findIndex(i => i.id === item.id);
+                    return newContextItems[oldIndex];
+                  }
+                  return item;
+                });
+                setItems(newItems);
+              } else {
+                setItems(newContextItems);
               }
-              return item;
-            });
-            setItems(newItems);
-          } else {
-            setItems(newContextItems);
-          }
-          
-          const updates = newContextItems.map((item, index) => ({
+              
+              const updates = newContextItems.map((item, index) => ({
+                 id: item.id,
+                 position: index * 1000
+              }));
+
+              reorderItems(updates).then(async () => {
+                 const updatedItems = await config.fetcher();
+                 setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+              });
+           }
+         } else if (filter === "all" && overItem.listId) {
+           // Cross-list drag and drop!
+           const newItems = [...items];
+           const aIdx = newItems.findIndex(i => i.id === active.id);
+           const oIdx = newItems.findIndex(i => i.id === over.id);
+           
+           // Update the list properties on the active item locally
+           newItems[aIdx] = { 
+             ...newItems[aIdx], 
+             listId: overItem.listId, 
+             listName: overItem.listName, 
+             listColor: overItem.listColor 
+           };
+           
+           // Move it in the flat array
+           const reordered = arrayMove(newItems, aIdx, oIdx);
+           setItems(reordered);
+           
+           // Calculate new positions for the target list
+           const targetListItems = reordered.filter(i => i.listId === overItem.listId);
+           const updates = targetListItems.map((item, index) => ({
              id: item.id,
              position: index * 1000
-          }));
+           }));
 
-          reorderItems(updates).then(async () => {
-             const updatedItems = await config.fetcher();
-             setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
-          });
+           // Execute backend operations
+           moveItem(activeItem.id, overItem.listId!, activeItem.listId!).then(() => {
+             reorderItems(updates).then(async () => {
+                const updatedItems = await config.fetcher();
+                setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
+                fetchItemCounts();
+             });
+           });
+         }
        }
     }
   };
