@@ -73,7 +73,7 @@ export const Item = ({
         paddingLeft: level ? `${(level * 12) + 24}px` : "24px"
       }}
       className={cn(
-        "group min-h-[27px] text-sm font-medium tracking-[0.005em] leading-snug py-2 pr-6 w-full hover:bg-zinc-100 dark:hover:bg-zinc-800/50 flex items-center text-[#646464] dark:text-[#a1a1a1] transition-colors rounded-none",
+        "group min-h-[27px] text-sm font-medium tracking-[0.005em] leading-snug py-2 pr-6 w-full hover:bg-zinc-200/60 dark:hover:bg-zinc-800/50 flex items-center text-[#646464] dark:text-[#a1a1a1] transition-colors rounded-none",
         active && activeVariant === "blue" && "bg-blue-500 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white antialiased",
         active && activeVariant === "gray" && "bg-zinc-200 dark:bg-zinc-800/80 text-[#1d1d1d] dark:text-zinc-100 antialiased"
       )}

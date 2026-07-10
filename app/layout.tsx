@@ -1,4 +1,4 @@
-import { Toaster } from "sonner";
+import { Toaster } from "@/components/ui/sonner";
 import { Inter } from 'next/font/google'
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
