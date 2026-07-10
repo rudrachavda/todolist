@@ -63,11 +63,11 @@ export const Item = ({
       onClick={onClick}
       role="button"
       style={{
-        paddingLeft: level ? `${(level * 12) + 12}px` : "12px"
+        paddingLeft: level ? `${(level * 12) + 24}px` : "24px"
       }}
       className={cn(
-        "group min-h-[27px] text-sm font-medium tracking-[0.005em] leading-snug py-1.5 pr-3 w-full hover:bg-zinc-100 dark:hover:bg-zinc-800/50 flex items-center text-[#646464] dark:text-[#a1a1a1] transition-colors rounded-md",
-        active && "bg-zinc-100 dark:bg-zinc-800/50 text-[#1d1d1d] dark:text-zinc-100 dark:antialiased"
+        "group min-h-[27px] text-sm font-medium tracking-[0.005em] leading-snug py-2 pr-6 w-full hover:bg-zinc-100 dark:hover:bg-zinc-800/50 flex items-center text-[#646464] dark:text-[#a1a1a1] transition-colors rounded-none",
+        active && "bg-blue-500 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white antialiased"
       )}
     >
       {documentIcon ? (
@@ -77,12 +77,12 @@ export const Item = ({
       ) : (
         <Icon
           className="shrink-0 h-[18px] w-[18px] mr-2"
-          style={{ color: color }}
+          style={{ color: active ? 'white' : color }}
         />
       )}
       <span 
         className="truncate"
-        style={{ color: color }}
+        style={{ color: active ? 'white' : color }}
       >
         {label}
       </span>
@@ -134,9 +134,9 @@ Item.Skeleton = function ItemSkeleton({ level }: { level?: number }) {
   return (
     <div
       style={{
-        paddingLeft: level ? `${(level * 12) + 25}px` : "12px"
+        paddingLeft: level ? `${(level * 12) + 37}px` : "24px"
       }}
-      className="flex gap-x-2 py-[3px]"
+      className="flex gap-x-2 py-[3px] pr-6"
     >
       <Skeleton className="h-4 w-4" />
       <Skeleton className="h-4 w-[30%]" />

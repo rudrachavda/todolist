@@ -212,65 +212,79 @@ export const Navigation = () => {
             icon={Search}
             isSearch
             onClick={search.onOpen}
+            active={search.isOpen}
           />
           <Item
             label="Settings"
             icon={Settings}
             onClick={settings.onOpen}
+            active={settings.isOpen}
           />
         </div>
-        <div className="mt-4 px-3 grid grid-cols-2 gap-2">
+        <div className="mt-4 px-6 grid grid-cols-2 gap-2">
             <div 
                 onClick={() => router.push("/today")}
-                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+                className={cn(
+                  "bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer transition",
+                  pathname === "/today" ? "bg-blue-500 dark:bg-blue-500 text-white" : "hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                )}
             >
                 <div className="flex justify-between items-start">
-                    <div className="bg-blue-500 p-1.5 rounded-full text-white">
+                    <div className={cn("p-1.5 rounded-full text-white", pathname === "/today" ? "bg-white text-blue-500" : "bg-blue-500")}>
                         <Calendar className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.today}</span>
+                    <span className={cn("text-xl font-bold font-halo", pathname === "/today" ? "text-white" : "text-foreground dark:text-[#a1a1a1]")}>{itemCounts.today}</span>
                 </div>
-                <span className="text-xs font-semibold text-muted-foreground">Today</span>
+                <span className={cn("text-xs font-semibold", pathname === "/today" ? "text-white" : "text-muted-foreground")}>Today</span>
             </div>
             <div 
                 onClick={() => router.push("/scheduled")}
-                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+                className={cn(
+                  "bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer transition",
+                  pathname === "/scheduled" ? "bg-blue-500 dark:bg-blue-500 text-white" : "hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                )}
             >
                 <div className="flex justify-between items-start">
-                    <div className="bg-red-500 p-1.5 rounded-full text-white">
+                    <div className={cn("p-1.5 rounded-full text-white", pathname === "/scheduled" ? "bg-white text-red-500" : "bg-red-500")}>
                         <Clock className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.scheduled}</span>
+                    <span className={cn("text-xl font-bold font-halo", pathname === "/scheduled" ? "text-white" : "text-foreground dark:text-[#a1a1a1]")}>{itemCounts.scheduled}</span>
                 </div>
-                <span className="text-xs font-semibold text-muted-foreground">Scheduled</span>
+                <span className={cn("text-xs font-semibold", pathname === "/scheduled" ? "text-white" : "text-muted-foreground")}>Scheduled</span>
             </div>
             <div 
                 onClick={() => router.push("/all")}
-                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+                className={cn(
+                  "bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer transition",
+                  pathname === "/all" ? "bg-blue-500 dark:bg-blue-500 text-white" : "hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                )}
             >
                 <div className="flex justify-between items-start">
-                    <div className="bg-neutral-500 p-1.5 rounded-full text-white">
+                    <div className={cn("p-1.5 rounded-full text-white", pathname === "/all" ? "bg-white text-neutral-500 dark:text-neutral-700" : "bg-neutral-500")}>
                         <Inbox className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.all}</span>
+                    <span className={cn("text-xl font-bold font-halo", pathname === "/all" ? "text-white" : "text-foreground dark:text-[#a1a1a1]")}>{itemCounts.all}</span>
                 </div>
-                <span className="text-xs font-semibold text-muted-foreground">All</span>
+                <span className={cn("text-xs font-semibold", pathname === "/all" ? "text-white" : "text-muted-foreground")}>All</span>
             </div>
             <div 
                 onClick={() => router.push("/completed")}
-                className="bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+                className={cn(
+                  "bg-background dark:bg-neutral-800 p-2.5 rounded-xl flex flex-col gap-y-1 cursor-pointer transition",
+                  pathname === "/completed" ? "bg-blue-500 dark:bg-blue-500 text-white" : "hover:bg-neutral-200 dark:hover:bg-neutral-700"
+                )}
             >
                 <div className="flex justify-between items-start">
-                    <div className="bg-neutral-400 p-1.5 rounded-full text-white">
+                    <div className={cn("p-1.5 rounded-full text-white", pathname === "/completed" ? "bg-white text-neutral-400 dark:text-neutral-600" : "bg-neutral-400")}>
                         <CheckCircle2 className="h-4 w-4" />
                     </div>
-                    <span className="text-xl font-bold font-halo text-foreground dark:text-[#a1a1a1]">{itemCounts.completed}</span>
+                    <span className={cn("text-xl font-bold font-halo", pathname === "/completed" ? "text-white" : "text-foreground dark:text-[#a1a1a1]")}>{itemCounts.completed}</span>
                 </div>
-                <span className="text-xs font-semibold text-muted-foreground">Completed</span>
+                <span className={cn("text-xs font-semibold", pathname === "/completed" ? "text-white" : "text-muted-foreground")}>Completed</span>
             </div>
         </div>
-        <div className="mt-8 px-3 flex-1 overflow-y-auto">
-          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>
+        <div className="mt-8 flex-1 overflow-y-auto">
+          <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>
           <div className="space-y-1 pb-4">
             {lists.map((list) => (
                 <DroppableSidebarItem 

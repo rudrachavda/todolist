@@ -154,8 +154,8 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
       className={cn(
         "group flex items-start gap-x-3 py-3 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0 relative outline-none",
         "transition-colors duration-200 ease-in-out px-8",
-        "focus:bg-zinc-100 dark:focus:bg-zinc-800/50 focus:rounded-lg focus:border-transparent",
-        isDragging && !isOverlay && "bg-zinc-100 dark:bg-zinc-800/50 rounded-lg opacity-60 border-transparent",
+        "focus:bg-zinc-100 dark:focus:bg-zinc-800/50 focus:rounded-none focus:border-transparent",
+        isDragging && !isOverlay && "bg-zinc-100 dark:bg-zinc-800/50 rounded-none opacity-60 border-transparent",
         isOverlay && "bg-white/70 dark:bg-[#1d1d1d]/70 backdrop-blur-md shadow-xl scale-[1.02] border-transparent"
       )}
     >
