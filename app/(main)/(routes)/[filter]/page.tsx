@@ -365,9 +365,13 @@ const FilterPage = () => {
             }
           }}
         >
-          {items.length === 0 && !isLoading ? (
+          {items.length === 0 && filter !== "all" && !isLoading ? (
             <p className="text-muted-foreground text-center pt-20">
               No reminders found.
+            </p>
+          ) : filter === "all" && groupedItems.length === 0 && !isLoading ? (
+            <p className="text-muted-foreground text-center pt-20">
+              No lists or reminders found.
             </p>
           ) : isLoading ? (
               <div className="text-muted-foreground text-center pt-20">

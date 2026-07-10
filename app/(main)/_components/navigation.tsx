@@ -245,9 +245,9 @@ export const Navigation = () => {
                     <div className="text-white drop-shadow-sm">
                         <Calendar className="h-6 w-6" strokeWidth={2.5} />
                     </div>
-                    <span className="text-2xl font-bold font-halo text-white drop-shadow-sm">{itemCounts.today}</span>
+                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.today}</span>
                 </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-1">Today</span>
+                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Today</span>
             </div>
             <div 
                 onClick={() => router.push("/scheduled")}
@@ -260,9 +260,9 @@ export const Navigation = () => {
                     <div className="text-white drop-shadow-sm">
                         <Clock className="h-6 w-6" strokeWidth={2.5} />
                     </div>
-                    <span className="text-2xl font-bold font-halo text-white drop-shadow-sm">{itemCounts.scheduled}</span>
+                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.scheduled}</span>
                 </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-1">Scheduled</span>
+                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Scheduled</span>
             </div>
             <div 
                 onClick={() => router.push("/all")}
@@ -275,9 +275,9 @@ export const Navigation = () => {
                     <div className="text-white drop-shadow-sm">
                         <Inbox className="h-6 w-6" strokeWidth={2.5} />
                     </div>
-                    <span className="text-2xl font-bold font-halo text-white drop-shadow-sm">{itemCounts.all}</span>
+                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.all}</span>
                 </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-1">All</span>
+                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">All</span>
             </div>
             <div 
                 onClick={() => router.push("/completed")}
@@ -290,9 +290,9 @@ export const Navigation = () => {
                     <div className="text-white drop-shadow-sm">
                         <CheckCircle2 className="h-6 w-6" strokeWidth={2.5} />
                     </div>
-                    <span className="text-2xl font-bold font-halo text-white drop-shadow-sm">{itemCounts.completed}</span>
+                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.completed}</span>
                 </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-1">Completed</span>
+                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Completed</span>
             </div>
         </div>
         <div className="mt-8 flex-1 overflow-y-auto">
