@@ -33,6 +33,16 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 import { UserItem } from "./user-item";
 import { Item } from "./item";
@@ -104,7 +114,7 @@ export const Navigation = () => {
     if (!isResizingRef.current) return;
     let newWidth = event.clientX;
 
-    if (newWidth < 240) newWidth = 240;
+    if (newWidth < 315) newWidth = 315;
     if (newWidth > 480) newWidth = 480;
 
     if (sidebarRef.current && navbarRef.current) {
@@ -125,14 +135,14 @@ export const Navigation = () => {
       setIsCollapsed(false);
       setIsResetting(true);
 
-      sidebarRef.current.style.width = isMobile ? "100%" : "240px";
+      sidebarRef.current.style.width = isMobile ? "100%" : "315px";
       navbarRef.current.style.setProperty(
         "width",
-        isMobile ? "0" : "calc(100% - 240px)"
+        isMobile ? "0" : "calc(100% - 315px)"
       );
       navbarRef.current.style.setProperty(
         "left",
-        isMobile ? "100%" : "240px"
+        isMobile ? "100%" : "315px"
       );
       setTimeout(() => setIsResetting(false), 300);
     }
@@ -190,7 +200,7 @@ export const Navigation = () => {
       <aside
         ref={sidebarRef}
         className={cn(
-          "group/sidebar h-full select-none bg-secondary overflow-y-auto relative flex w-60 flex-col z-[99999]",
+          "group/sidebar h-full select-none bg-secondary dark:bg-[#121212] overflow-y-auto relative flex w-60 flex-col z-[99999]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "w-0"
         )}
@@ -227,7 +237,7 @@ export const Navigation = () => {
             <div 
                 onClick={() => router.push("/today")}
                 className={cn(
-                  "p-3 rounded-xl flex flex-col gap-y-1 cursor-pointer transition shadow-sm",
+                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
                   "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
                 )}
             >
@@ -242,7 +252,7 @@ export const Navigation = () => {
             <div 
                 onClick={() => router.push("/scheduled")}
                 className={cn(
-                  "p-3 rounded-xl flex flex-col gap-y-1 cursor-pointer transition shadow-sm",
+                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
                   "bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700"
                 )}
             >
@@ -257,7 +267,7 @@ export const Navigation = () => {
             <div 
                 onClick={() => router.push("/all")}
                 className={cn(
-                  "p-3 rounded-xl flex flex-col gap-y-1 cursor-pointer transition shadow-sm",
+                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
                   "bg-gradient-to-br from-zinc-600 to-zinc-800 hover:from-zinc-700 hover:to-zinc-900"
                 )}
             >
@@ -272,7 +282,7 @@ export const Navigation = () => {
             <div 
                 onClick={() => router.push("/completed")}
                 className={cn(
-                  "p-3 rounded-xl flex flex-col gap-y-1 cursor-pointer transition shadow-sm",
+                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
                   "bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700"
                 )}
             >
@@ -298,6 +308,7 @@ export const Navigation = () => {
                     params={params}
                     ListIcon={ListIcon}
                     colors={colors}
+                    itemCounts={itemCounts}
                 />
             ))}
             <Item
@@ -322,7 +333,7 @@ export const Navigation = () => {
       <div
         ref={navbarRef}
         className={cn(
-          "absolute top-0 z-[99999] left-60 w-[calc(100%-240px)]",
+          "absolute top-0 z-[99999] left-60 w-[calc(100%-315px)]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "left-0 w-full"
         )}
@@ -350,9 +361,10 @@ interface DroppableSidebarItemProps {
   params: any; // useParams
   ListIcon: any; // LucideIcon
   colors: string[];
+  itemCounts: any;
 }
 
-const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params, ListIcon, colors }: DroppableSidebarItemProps) => {
+const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params, ListIcon, colors, itemCounts }: DroppableSidebarItemProps) => {
   const {setNodeRef, isOver} = useDroppable({
     id: list.id,
     data: {
@@ -361,55 +373,167 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
     },
   });
 
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editName, setEditName] = useState(list.name);
+  const [editColor, setEditColor] = useState(list.color);
+  
+  const [isPressing, setIsPressing] = useState(false);
+  const [pressPos, setPressPos] = useState({ x: 0, y: 0 });
+  const [progress, setProgress] = useState(0);
+  
+  const pressTimer = useRef<NodeJS.Timeout | null>(null);
+  const animTimer = useRef<NodeJS.Timeout | null>(null);
+  const wasLongPress = useRef(false);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (e.button !== 0) return;
+    setPressPos({ x: e.clientX, y: e.clientY });
+    setIsPressing(true);
+    setProgress(0);
+    wasLongPress.current = false;
+
+    animTimer.current = setTimeout(() => {
+      setProgress(100);
+    }, 10);
+
+    pressTimer.current = setTimeout(() => {
+      setIsPressing(false);
+      wasLongPress.current = true;
+      setMenuOpen(true);
+    }, 500);
+  };
+
+  const cancelPress = () => {
+    setIsPressing(false);
+    setProgress(0);
+    if (pressTimer.current) clearTimeout(pressTimer.current);
+    if (animTimer.current) clearTimeout(animTimer.current);
+  };
+
+  const handleMouseUp = () => {
+    cancelPress();
+  };
+
+  const handleSave = () => {
+    onUpdateList(list.id, { name: editName, color: editColor });
+    setSettingsOpen(false);
+  };
+
   return (
-    <div ref={setNodeRef} className={cn(
-      isOver && "ring-2 ring-blue-500 ring-offset-2"
-    )}>
-      <Item 
-          label={list.name}
-          icon={ListIcon}
-          color={list.color}
-          onClick={() => router.push(`/lists/${list.id}`)}
-          active={params.listId === list.id}
-          actions={
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <div role="button" className="opacity-0 group-hover:opacity-100 h-full ml-auto rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 p-0.5">
-                  <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48" align="start" side="right" forceMount onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => {
-                  const newName = prompt("Rename list", list.name);
-                  if (newName) onUpdateList(list.id, { name: newName });
-                }}>
-                  Rename
-                </DropdownMenuItem>
-                <DropdownMenuItem 
-                  onClick={() => onDeleteList(list.id)}
-                  className="text-red-500 focus:text-red-500"
-                >
-                  Delete List
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <div className="p-2 grid grid-cols-5 gap-2">
-                  {colors.map((color) => (
-                    <div 
-                      key={color}
-                      onClick={() => onUpdateList(list.id, { color })}
-                      className={cn(
-                        "h-5 w-5 rounded-full cursor-pointer border border-white/20",
-                        list.color === color && "ring-2 ring-primary ring-offset-1 dark:ring-offset-neutral-800"
-                      )}
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
-                </div>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          }
-      />
-    </div>
+    <>
+      <div 
+        ref={setNodeRef} 
+        className={cn(
+          "relative select-none",
+          isOver && "ring-2 ring-blue-500 ring-offset-2"
+        )}
+      >
+        <div
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={cancelPress}
+          onClickCapture={(e) => {
+            if (wasLongPress.current) {
+              e.stopPropagation();
+              e.preventDefault();
+              wasLongPress.current = false;
+            }
+          }}
+        >
+          <Item 
+              label={list.name}
+              icon={ListIcon}
+              color={list.color}
+              count={itemCounts?.listCounts?.[list.id] || 0}
+              onClick={() => router.push(`/lists/${list.id}`)}
+              active={params.listId === list.id}
+          />
+        </div>
+
+        {isPressing && (
+          <div 
+            className="fixed z-[999999] pointer-events-none"
+            style={{ left: pressPos.x - 15, top: pressPos.y + 15 }}
+          >
+            <div className="w-[30px] h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden shadow-sm border border-neutral-300 dark:border-neutral-700">
+              <div 
+                className="h-full bg-blue-500 rounded-full transition-all ease-linear"
+                style={{ 
+                  width: `${progress}%`, 
+                  transitionDuration: progress === 100 ? '500ms' : '0ms' 
+                }} 
+              />
+            </div>
+          </div>
+        )}
+
+        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <div 
+              className="fixed pointer-events-none opacity-0" 
+              style={{ left: pressPos.x, top: pressPos.y, width: 1, height: 1 }} 
+            />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48" align="start" side="bottom">
+            <DropdownMenuItem onSelect={(e) => {
+              e.preventDefault(); // Prevent dropdown from closing immediately
+              setMenuOpen(false); // Close dropdown manually
+              setTimeout(() => setSettingsOpen(true), 10); // Safely open dialog
+            }}>
+              Edit List
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onSelect={() => onDeleteList(list.id)}
+              className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/30"
+            >
+              Delete List
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent className="sm:max-w-[425px]" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle>Edit List</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                className="col-span-3"
+                autoFocus
+              />
+            </div>
+            <div className="flex flex-col gap-2 mt-2">
+              <Label>Color</Label>
+              <div className="grid grid-cols-6 gap-2 mt-1">
+                {colors.map((color) => (
+                  <div 
+                    key={color}
+                    onClick={() => setEditColor(color)}
+                    className={cn(
+                      "h-8 w-8 rounded-full cursor-pointer border border-white/20 transition-all",
+                      editColor === color ? "ring-2 ring-primary ring-offset-2 dark:ring-offset-neutral-900 scale-110" : "hover:scale-105"
+                    )}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSettingsOpen(false)}>Cancel</Button>
+            <Button onClick={handleSave}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

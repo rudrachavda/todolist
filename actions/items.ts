@@ -156,12 +156,24 @@ export async function getItemsCounts() {
   const [todayCount] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), like(items.dueDate, `${today}%`)));
   const [scheduled] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), gte(items.dueDate, today)));
   const [completed] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, true)));
-  
+  const listCountsData = await db.select({ listId: items.listId, count: sql<number>`count(*)` })
+    .from(items)
+    .where(and(eq(items.userId, userId), eq(items.isDeleted, false)))
+    .groupBy(items.listId);
+
+  const listCounts = listCountsData.reduce((acc, row) => {
+    if (row.listId) {
+      acc[row.listId] = row.count;
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
   return {
     all: all?.count || 0,
     today: todayCount?.count || 0,
     scheduled: scheduled?.count || 0,
     completed: completed?.count || 0,
+    listCounts,
   };
 }
 

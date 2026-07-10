@@ -8,6 +8,7 @@ interface ItemCounts {
   scheduled: number;
   all: number;
   completed: number;
+  listCounts: Record<string, number>;
 }
 
 interface ListsStore {
@@ -25,7 +26,7 @@ interface ListsStore {
 export const useLists = create<ListsStore>((set) => ({
   lists: [],
   listLoading: false,
-  itemCounts: { today: 0, scheduled: 0, all: 0, completed: 0 },
+  itemCounts: { today: 0, scheduled: 0, all: 0, completed: 0, listCounts: {} },
   countsLoading: false,
 
   fetchLists: async () => {
