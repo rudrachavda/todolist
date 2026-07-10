@@ -363,7 +363,7 @@ const FilterPage = () => {
       >
         <div 
           className="flex-1 overflow-y-auto space-y-1 pb-20"
-          onDoubleClick={(e) => {
+          onClick={(e) => {
             if (e.target === e.currentTarget && filter !== "completed" && filter !== "all") {
               setShowInput(true);
             }
@@ -403,20 +403,6 @@ const FilterPage = () => {
             ))
           )}
           
-          {filter !== "completed" && filter !== "all" && !showInput && (
-            <div
-              onClick={() => setShowInput(true)}
-              className="flex items-center gap-x-3 py-3 px-8 shrink-0 cursor-pointer group hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0"
-            >
-              <div className="shrink-0 opacity-50 flex items-center h-[22px]">
-                <Plus className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <span className="text-sm font-medium tracking-[0.005em] leading-[22px] text-muted-foreground">
-                New Reminder
-              </span>
-            </div>
-          )}
-
           {filter !== "completed" && filter !== "all" && showInput && (
             <form 
               onSubmit={handleCreateItem}
