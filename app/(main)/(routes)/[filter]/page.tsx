@@ -141,9 +141,13 @@ const FilterPage = () => {
     return result;
   }, [items, filter, allLists]); // Add allLists to dependency array
 
-  const handleCreateItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newItemText.trim()) return;
+  const handleCreateItem = async (e?: React.FormEvent, overrideText?: string) => {
+    if (e) e.preventDefault();
+    const textToCreate = overrideText !== undefined ? overrideText : newItemText;
+    if (!textToCreate.trim()) {
+      setShowInput(false);
+      return;
+    }
 
     const getTodayDefaultLocal = () => {
       const now = new Date();
@@ -156,7 +160,7 @@ const FilterPage = () => {
       return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
     };
     const dueDate = filter === "today" ? getTodayDefaultLocal() : undefined;
-    const newItem = await createItem(newItemText, undefined, dueDate);
+    const newItem = await createItem(textToCreate, undefined, dueDate);
     
     // Re-fetch all items for the current filter to reflect the new item
     // This is especially important for filters like "Today", "Scheduled", "All"
@@ -398,29 +402,55 @@ const FilterPage = () => {
               </DroppableListGroup>
             ))
           )}
+          
+          {filter !== "completed" && filter !== "all" && !showInput && (
+            <div
+              onClick={() => setShowInput(true)}
+              className="flex items-center gap-x-3 py-3 px-8 shrink-0 cursor-pointer group hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0"
+            >
+              <div className="shrink-0 opacity-50 flex items-center h-[22px]">
+                <Plus className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <span className="text-sm font-medium tracking-[0.005em] leading-[22px] text-muted-foreground">
+                New Reminder
+              </span>
+            </div>
+          )}
+
+          {filter !== "completed" && filter !== "all" && showInput && (
+            <form 
+              onSubmit={handleCreateItem}
+              className="flex items-center gap-x-3 py-3 px-8 shrink-0 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0"
+            >
+              <div className="shrink-0 opacity-50 flex items-center h-[22px]">
+                <div className="h-5 w-5 rounded-full border border-solid border-[#a1a1a1] dark:border-[#646464]" />
+              </div>
+              <input 
+                  autoFocus
+                  value={newItemText}
+                  onChange={(e) => setNewItemText(e.target.value)}
+                  onBlur={() => {
+                    if (!newItemText.trim()) {
+                      handleCreateItem(undefined, "New Reminder");
+                    } else {
+                      handleCreateItem(undefined, newItemText);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      setShowInput(false);
+                      setNewItemText("");
+                    }
+                  }}
+                  placeholder=""
+                  className="flex-1 bg-transparent border-none outline-none text-sm font-medium tracking-[0.005em] leading-[22px] h-[22px] text-[#1d1d1d] dark:text-zinc-100 dark:antialiased placeholder:text-[#a1a1a1] dark:placeholder:text-[#646464]"
+              />
+            </form>
+          )}
         </div>
 
 
       </DndContext>
-
-      {filter !== "completed" && filter !== "all" && showInput && (
-            <form 
-            onSubmit={handleCreateItem}
-            className="flex items-center gap-x-3 py-3 px-8 shrink-0"
-            >
-            <Plus className="h-6 w-6 text-muted-foreground" />
-            <input 
-                autoFocus
-                value={newItemText}
-                onChange={(e) => setNewItemText(e.target.value)}
-                onBlur={() => {
-                  if (!newItemText.trim()) setShowInput(false);
-                }}
-                placeholder="Add a reminder..."
-                className="flex-1 bg-transparent border-none outline-none text-sm font-medium tracking-[0.005em] leading-snug text-[#1d1d1d] dark:text-zinc-100 dark:antialiased placeholder:text-[#a1a1a1] dark:placeholder:text-[#646464]"
-            />
-            </form>
-        )}
     </div>
   );
 }

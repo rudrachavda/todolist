@@ -181,23 +181,26 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
       {dropIndicator === 'bottom' && (
         <div className="absolute bottom-[-1px] left-0 right-0 h-[2px] bg-blue-500 rounded-full z-50 pointer-events-none" />
       )}
-      <button
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleCompletion(item);
-        }}
-        className="mt-0.5 hover:opacity-75 transition shrink-0"
-      >
-        {item.isCompleted ? (
-          <CheckCircle2 className="h-5 w-5 text-zinc-900 fill-zinc-900 dark:text-zinc-100 dark:fill-zinc-100" />
-        ) : (
-          <Circle className="h-5 w-5 text-[#a1a1a1] dark:text-[#646464]" />
-        )}
-      </button>
+      <div className="flex items-center justify-center h-[22px] shrink-0">
+        <button
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleCompletion(item);
+          }}
+          className="hover:opacity-75 transition"
+        >
+          {item.isCompleted ? (
+            <CheckCircle2 className="h-5 w-5 text-zinc-900 fill-zinc-900 dark:text-zinc-100 dark:fill-zinc-100" />
+          ) : (
+            <Circle className="h-5 w-5 text-[#a1a1a1] dark:text-[#646464]" />
+          )}
+        </button>
+      </div>
       
       {!isEditing ? (
-        <div className="flex-1 min-w-0 flex flex-col">
+        <>
+          <div className="flex-1 min-w-0 flex flex-col">
           <p 
             className={cn(
               "text-sm font-medium tracking-[0.005em] leading-[22px] h-[22px] text-[#1d1d1d] dark:text-zinc-100 dark:antialiased transition-colors truncate p-0 m-0 cursor-text self-start max-w-full",
@@ -210,15 +213,15 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
           </p>
           {item.description && (
             <p 
-              className="text-xs tracking-[0.005em] leading-relaxed text-[#646464] dark:text-zinc-400 line-clamp-2 mt-0.5 p-0 m-0 cursor-text self-start max-w-full"
+              className="text-xs tracking-[0.005em] leading-none text-[#646464] dark:text-zinc-400 line-clamp-2 mt-0.5 p-0 m-0 cursor-text self-start max-w-full"
               onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
               onPointerDown={(e) => e.stopPropagation()}
             >
               {item.description}
             </p>
           )}
-          <div className={cn("flex items-center gap-x-2 self-start", item.dueDate ? "mt-2.5" : "mt-1.5")}>
-            {item.dueDate && (
+          {(item.dueDate) && (
+            <div className="flex items-center gap-x-2 self-start mt-2.5">
               <div 
                 className="flex items-center gap-x-2 cursor-pointer"
                 onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
@@ -240,24 +243,23 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
                   </span>
                 </div>
               </div>
-            )}
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteItem(item.id);
-              }}
-              onPointerDown={(e) => e.stopPropagation()}
-              className={cn(
-                "opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-full bg-zinc-100 hover:bg-red-100 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-900/30 dark:hover:text-red-400 text-[#a1a1a1] dark:text-[#646464] shrink-0",
-                item.dueDate ? "h-[24px] w-[24px]" : "h-6 w-6"
-              )}
-              title="Delete"
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </button>
-          </div>
+            </div>
+          )}
         </div>
+        <div className="flex items-center justify-center h-[22px] shrink-0">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDeleteItem(item.id);
+            }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-full bg-zinc-100 hover:bg-red-100 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-900/30 dark:hover:text-red-400 text-[#a1a1a1] dark:text-[#646464] h-6 w-6"
+            title="Delete"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+        </>
       ) : (
         <div className="flex-1 min-w-0 flex flex-col">
           <input
@@ -270,7 +272,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
           />
           <textarea
             placeholder="Notes"
-            className="w-full bg-transparent border-none outline-none text-xs tracking-[0.005em] leading-relaxed text-[#646464] dark:text-zinc-400 resize-none p-0 m-0 mt-0.5"
+            className="w-full bg-transparent border-none outline-none text-xs tracking-[0.005em] leading-none text-[#646464] dark:text-zinc-400 resize-none p-0 m-0 mt-0.5"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={2}
