@@ -33,6 +33,7 @@ interface ItemProps {
   icon: LucideIcon;
   actions?: React.ReactNode;
   color?: string;
+  activeVariant?: "blue" | "gray";
 };
 
 export const Item = ({
@@ -48,6 +49,7 @@ export const Item = ({
   expanded,
   actions,
   color,
+  activeVariant = "blue",
 }: ItemProps) => {
   const router = useRouter();
 
@@ -67,7 +69,8 @@ export const Item = ({
       }}
       className={cn(
         "group min-h-[27px] text-sm font-medium tracking-[0.005em] leading-snug py-2 pr-6 w-full hover:bg-zinc-100 dark:hover:bg-zinc-800/50 flex items-center text-[#646464] dark:text-[#a1a1a1] transition-colors rounded-none",
-        active && "bg-blue-500 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white antialiased"
+        active && activeVariant === "blue" && "bg-blue-500 hover:bg-blue-500 dark:bg-blue-500 dark:hover:bg-blue-500 text-white dark:text-white antialiased",
+        active && activeVariant === "gray" && "bg-zinc-200 dark:bg-zinc-800/80 text-[#1d1d1d] dark:text-zinc-100 antialiased"
       )}
     >
       {documentIcon ? (
@@ -77,12 +80,12 @@ export const Item = ({
       ) : (
         <Icon
           className="shrink-0 h-[18px] w-[18px] mr-2"
-          style={{ color: active ? 'white' : color }}
+          style={{ color: (active && activeVariant === "blue") ? 'white' : color }}
         />
       )}
       <span 
         className="truncate"
-        style={{ color: active ? 'white' : color }}
+        style={{ color: (active && activeVariant === "blue") ? 'white' : color }}
       >
         {label}
       </span>
