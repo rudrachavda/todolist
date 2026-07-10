@@ -191,7 +191,13 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
           className="hover:opacity-75 transition"
         >
           {item.isCompleted ? (
-            <CheckCircle2 className="h-5 w-5 text-zinc-900 fill-zinc-900 dark:text-zinc-100 dark:fill-zinc-100" />
+            <CheckCircle2 
+              className={cn(
+                "h-5 w-5",
+                !item.listColor && "text-white dark:text-zinc-900 fill-zinc-900 dark:fill-zinc-100"
+              )}
+              style={item.listColor ? { fill: item.listColor, color: '#ffffff' } : undefined}
+            />
           ) : (
             <Circle className="h-5 w-5 text-[#a1a1a1] dark:text-[#646464]" />
           )}
@@ -204,7 +210,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
           <p 
             className={cn(
               "text-sm font-medium tracking-[0.005em] leading-[22px] h-[22px] text-[#1d1d1d] dark:text-zinc-100 dark:antialiased transition-colors truncate p-0 m-0 cursor-text self-start max-w-full",
-              item.isCompleted && "text-[#a1a1a1] dark:text-[#646464] line-through decoration-[#a1a1a1]/30 dark:decoration-[#646464]/30"
+              item.isCompleted && "text-[#a1a1a1] dark:text-[#646464]"
             )}
             onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
             onPointerDown={(e) => e.stopPropagation()}

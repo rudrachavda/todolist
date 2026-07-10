@@ -255,7 +255,7 @@ const ListIdPage = () => {
               className="flex items-center gap-x-3 py-3 px-8 shrink-0 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0"
             >
               <div className="shrink-0 opacity-50 flex items-center h-[22px]">
-                <div className="h-5 w-5 rounded-full border border-solid border-[#a1a1a1] dark:border-[#646464]" />
+                <div className="h-5 w-5 rounded-full border-[1.5px] border-dashed border-[#a1a1a1] dark:border-[#646464]" />
               </div>
               <input 
                   autoFocus
@@ -263,7 +263,7 @@ const ListIdPage = () => {
                   onChange={(e) => setNewItemText(e.target.value)}
                   onBlur={() => {
                     if (!newItemText.trim()) {
-                      handleCreateItem(undefined, "New Reminder");
+                      setShowInput(false);
                     } else {
                       handleCreateItem(undefined, newItemText);
                     }

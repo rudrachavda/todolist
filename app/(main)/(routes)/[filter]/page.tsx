@@ -45,17 +45,31 @@ interface GroupedItems {
 interface DroppableListGroupProps {
   list: { name: string; color: string; id: string } | null;
   children: React.ReactNode;
+  isEmpty?: boolean;
 }
 
-const DroppableListGroup = ({ list, children }: DroppableListGroupProps) => {
+const DroppableListGroup = ({ list, children, isEmpty }: DroppableListGroupProps) => {
+  const { setNodeRef, isOver } = useDroppable({
+    id: list ? `list-group-${list.id}` : 'no-list-group',
+    data: {
+      type: 'ListGroup',
+      listId: list?.id,
+      listName: list?.name,
+      listColor: list?.color
+    }
+  });
+
   return (
-    <div className="mb-4">
+    <div ref={setNodeRef} className={cn("mb-4 relative", isEmpty && "min-h-[40px] pb-4")}>
       {list && (
         <h2 className="text-sm font-medium tracking-[0.005em] leading-none mb-4 px-8 pt-4" style={{ color: list.color }}>
           {list.name}
         </h2>
       )}
       {children}
+      {isEmpty && isOver && (
+         <div className="absolute bottom-2 left-8 right-8 h-[2px] bg-[#a1a1a1] dark:bg-[#646464] rounded-full" />
+      )}
     </div>
   );
 };
@@ -301,7 +315,7 @@ const FilterPage = () => {
                  setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
               });
            }
-         } else if (filter === "all" && overItem.listId) {
+          } else if (filter === "all" && overItem.listId) {
            // Cross-list drag and drop!
            const newItems = [...items];
            const aIdx = newItems.findIndex(i => i.id === active.id);
@@ -335,6 +349,35 @@ const FilterPage = () => {
              });
            });
          }
+       } else if (activeItem && overType === 'ListGroup') {
+          // Moved to an empty list group
+          const targetListId = over.data.current?.listId;
+          if (!targetListId || targetListId === activeItem.listId) return;
+
+           const newItems = [...items];
+           const aIdx = newItems.findIndex(i => i.id === active.id);
+           
+           newItems[aIdx] = { 
+             ...newItems[aIdx], 
+             listId: targetListId, 
+             listName: over.data.current?.listName, 
+             listColor: over.data.current?.listColor 
+           };
+           
+           setItems(newItems);
+           
+           const updates = [{
+             id: activeItem.id,
+             position: 0
+           }];
+
+           moveItem(activeItem.id, targetListId, activeItem.listId!).then(() => {
+             reorderItems(updates).then(async () => {
+                const updatedItems = await config.fetcher();
+                setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
+                fetchItemCounts();
+             });
+           });
        }
     }
   };
@@ -383,7 +426,7 @@ const FilterPage = () => {
               </div>
           ) : (
             groupedItems.map((group, groupIndex) => (
-              <DroppableListGroup key={group.list?.id || `no-list-${groupIndex}`} list={group.list}>
+              <DroppableListGroup key={group.list?.id || `no-list-${groupIndex}`} list={group.list} isEmpty={group.items.length === 0}>
                 <SortableContext 
                   items={group.items.map(item => item.id)}
                   strategy={verticalListSortingStrategy}
@@ -409,7 +452,7 @@ const FilterPage = () => {
               className="flex items-center gap-x-3 py-3 px-8 shrink-0 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0"
             >
               <div className="shrink-0 opacity-50 flex items-center h-[22px]">
-                <div className="h-5 w-5 rounded-full border border-solid border-[#a1a1a1] dark:border-[#646464]" />
+                <div className="h-5 w-5 rounded-full border-[1.5px] border-dashed border-[#a1a1a1] dark:border-[#646464]" />
               </div>
               <input 
                   autoFocus
@@ -417,7 +460,7 @@ const FilterPage = () => {
                   onChange={(e) => setNewItemText(e.target.value)}
                   onBlur={() => {
                     if (!newItemText.trim()) {
-                      handleCreateItem(undefined, "New Reminder");
+                      setShowInput(false);
                     } else {
                       handleCreateItem(undefined, newItemText);
                     }

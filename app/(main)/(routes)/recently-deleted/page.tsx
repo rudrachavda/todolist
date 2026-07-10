@@ -74,7 +74,7 @@ const RecentlyDeletedPage = () => {
               <Trash2 className="h-6 w-6 text-muted-foreground" />
             </div>
             <div className="flex-1 space-y-0.5">
-              <p className="text-lg font-medium text-muted-foreground line-through">
+              <p className="text-lg font-medium text-muted-foreground">
                 {item.text}
               </p>
               <p className="text-xs text-muted-foreground">
