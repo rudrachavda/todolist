@@ -36,7 +36,7 @@ export async function getItemsByList(listId: string) {
   const userId = await getUserId();
   return db.select()
     .from(items)
-    .where(and(eq(items.listId, listId), eq(items.userId, userId), eq(items.isDeleted, false)))
+    .where(and(eq(items.listId, listId), eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, false)))
     .orderBy(asc(items.position), desc(items.createdAt));
 }
 
@@ -116,10 +116,17 @@ export async function reorderItems(updates: { id: string, position: number }[]) 
 export async function getTodayItems() {
     const userId = await getUserId();
     const today = getLocalToday();
-    return db.select()
-        .from(items)
-        .where(and(like(items.dueDate, `${today}%`), eq(items.userId, userId), eq(items.isDeleted, false)))
-        .orderBy(asc(items.position), desc(items.createdAt));
+    return db.select({
+      item: items,
+      list: {
+        name: lists.name,
+        color: lists.color,
+      }
+    })
+    .from(items)
+    .leftJoin(lists, eq(items.listId, lists.id))
+    .where(and(like(items.dueDate, `${today}%`), eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, false)))
+    .orderBy(asc(items.position), desc(items.createdAt));
 }
 
 export async function getAllItems() {
@@ -140,18 +147,32 @@ export async function getAllItems() {
 export async function getScheduledItems() {
     const userId = await getUserId();
     const today = getLocalToday();
-    return db.select()
-        .from(items)
-        .where(and(gte(items.dueDate, today), eq(items.userId, userId), eq(items.isDeleted, false)))
-        .orderBy(asc(items.position), desc(items.createdAt));
+    return db.select({
+      item: items,
+      list: {
+        name: lists.name,
+        color: lists.color,
+      }
+    })
+    .from(items)
+    .leftJoin(lists, eq(items.listId, lists.id))
+    .where(and(gte(items.dueDate, today), eq(items.userId, userId), eq(items.isDeleted, false), eq(items.isCompleted, false)))
+    .orderBy(asc(items.position), desc(items.createdAt));
 }
 
 export async function getCompletedItems() {
     const userId = await getUserId();
-    return db.select()
-        .from(items)
-        .where(and(eq(items.isCompleted, true), eq(items.userId, userId), eq(items.isDeleted, false)))
-        .orderBy(asc(items.position), desc(items.createdAt));
+    return db.select({
+      item: items,
+      list: {
+        name: lists.name,
+        color: lists.color,
+      }
+    })
+    .from(items)
+    .leftJoin(lists, eq(items.listId, lists.id))
+    .where(and(eq(items.isCompleted, true), eq(items.userId, userId), eq(items.isDeleted, false)))
+    .orderBy(asc(items.position), desc(items.createdAt));
 }
 
 export async function getItemsCounts() {
