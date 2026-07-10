@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Circle, CheckCircle2, Trash2, CalendarIcon, X } from "lucide-react";
+import { Circle, Check, Trash2, CalendarIcon, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -191,13 +191,21 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
           className="hover:opacity-75 transition"
         >
           {item.isCompleted ? (
-            <CheckCircle2 
+            <div 
               className={cn(
-                "h-5 w-5",
-                !item.listColor && "text-white dark:text-zinc-900 fill-zinc-900 dark:fill-zinc-100"
+                "flex items-center justify-center h-5 w-5 rounded-full border transition-colors",
+                !item.listColor && "border-zinc-900 dark:border-zinc-100"
               )}
-              style={item.listColor ? { fill: item.listColor, color: '#ffffff' } : undefined}
-            />
+              style={item.listColor ? { borderColor: item.listColor } : undefined}
+            >
+              <div 
+                className={cn(
+                  "h-4 w-4 rounded-full",
+                  !item.listColor && "bg-zinc-900 dark:bg-zinc-100"
+                )}
+                style={item.listColor ? { backgroundColor: item.listColor } : undefined}
+              />
+            </div>
           ) : (
             <Circle className="h-5 w-5 text-[#a1a1a1] dark:text-[#646464]" />
           )}

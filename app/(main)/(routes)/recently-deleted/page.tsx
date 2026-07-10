@@ -68,13 +68,13 @@ const RecentlyDeletedPage = () => {
         {items.map((item) => (
           <div 
             key={item.id}
-            className="group flex items-start gap-x-3 py-3 border-b border-secondary/50 last:border-0"
+            className="group flex items-start gap-x-3 py-3 px-8 shrink-0 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0"
           >
-            <div className="mt-0.5">
-              <Trash2 className="h-6 w-6 text-muted-foreground" />
+            <div className="shrink-0 opacity-50 flex items-center h-[22px]">
+              <Trash2 className="h-5 w-5 text-[#a1a1a1] dark:text-[#646464]" />
             </div>
-            <div className="flex-1 space-y-0.5">
-              <p className="text-lg font-medium text-muted-foreground">
+            <div className="flex-1 min-w-0 flex flex-col justify-start">
+              <p className="text-sm font-medium tracking-[0.005em] leading-[22px] text-[#a1a1a1] dark:text-[#646464] dark:antialiased truncate p-0 m-0 self-start max-w-full">
                 {item.text}
               </p>
               <p className="text-xs text-muted-foreground">
