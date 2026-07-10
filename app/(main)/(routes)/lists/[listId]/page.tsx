@@ -105,6 +105,11 @@ const ListIdPage = () => {
     setItems(prev => prev.map(i => i.id === item.id ? { ...i, isCompleted: updatedStatus } : i));
     await updateItem(item.id, { isCompleted: updatedStatus });
     fetchItemCounts(); 
+    
+    setTimeout(async () => {
+      const updatedItems = await getItemsByList(listId);
+      setItems(updatedItems);
+    }, 2000);
   };
 
   const handleDeleteItem = async (id: string) => {
@@ -240,7 +245,7 @@ const ListIdPage = () => {
             {items.map((item, index) => (
               <DraggableItem 
                 key={item.id}
-                item={item}
+                item={{ ...item, listColor: list?.color, listName: list?.name }}
                 index={index}
                 onToggleCompletion={handleToggleCompletion}
                 onDeleteItem={handleDeleteItem}

@@ -110,7 +110,7 @@ const FilterPage = () => {
       if (config) {
         setIsLoading(true);
         const data = await config.fetcher();
-        setItems(filter === "all" ? data.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : data);
+        setItems(data.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
         setIsLoading(false);
       }
     };
@@ -180,7 +180,7 @@ const FilterPage = () => {
     // This is especially important for filters like "Today", "Scheduled", "All"
     // where item placement depends on their properties
     const updatedItems = await config.fetcher();
-    setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+    setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
 
     setNewItemText("");
     setShowInput(false);
@@ -189,14 +189,18 @@ const FilterPage = () => {
 
   const handleToggleCompletion = async (item: ExtendedItem) => {
     const updatedStatus = !item.isCompleted;
+    setItems(prev => prev.map(i => i.id === item.id ? { ...i, isCompleted: updatedStatus } : i));
     await updateItem(item.id, { isCompleted: updatedStatus });
+    fetchItemCounts(); // Update global counts
     
     // Re-fetch all items for the current filter to reflect the completion status
     // This handles items disappearing from 'Today', 'All', or appearing in 'Completed'
-    const updatedItems = await config.fetcher();
-    setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
-
-    fetchItemCounts(); // Update global counts
+    setTimeout(async () => {
+      if (config) {
+        const updatedItems = await config.fetcher();
+        setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
+      }
+    }, 2000);
   };
 
   const handleDeleteItem = async (id: string) => {
@@ -204,7 +208,7 @@ const FilterPage = () => {
       .then(async () => {
         // Re-fetch all items for the current filter to reflect the deletion
         const updatedItems = await config.fetcher();
-        setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+        setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
         fetchItemCounts(); // Update global counts
       });
     
@@ -221,7 +225,7 @@ const FilterPage = () => {
     await updateItem(id, updates);
     // Re-fetch to ensure order and lists are correct
     const updatedItems = await config.fetcher();
-    setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+    setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
     fetchItemCounts();
   };
 
@@ -256,7 +260,7 @@ const FilterPage = () => {
         .then(async () => {
           // Re-fetch all items for the current filter to reflect the move
           const updatedItems = await config.fetcher();
-          setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+          setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
           fetchItemCounts(); // Update global counts
         });
 
@@ -312,7 +316,7 @@ const FilterPage = () => {
 
               reorderItems(updates).then(async () => {
                  const updatedItems = await config.fetcher();
-                 setItems(filter === "all" ? updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })) : updatedItems);
+                 setItems(updatedItems.map((d: any) => ({ ...d.item, listName: d.list?.name, listColor: d.list?.color })));
               });
            }
           } else if (filter === "all" && overItem.listId) {

@@ -378,6 +378,13 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
   const [editName, setEditName] = useState(list.name);
   const [editColor, setEditColor] = useState(list.color);
   
+  useEffect(() => {
+    if (settingsOpen) {
+      setEditName(list.name);
+      setEditColor(list.color);
+    }
+  }, [settingsOpen, list.name, list.color]);
+  
   const [isPressing, setIsPressing] = useState(false);
   const [pressPos, setPressPos] = useState({ x: 0, y: 0 });
   const [progress, setProgress] = useState(0);
