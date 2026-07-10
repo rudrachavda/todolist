@@ -233,7 +233,7 @@ export const Navigation = () => {
             activeVariant="gray"
           />
         </div>
-        <div className="mt-4 px-6 grid grid-cols-2 gap-2">
+        <div className="mt-4 px-3 grid grid-cols-2 gap-2">
             <div 
                 onClick={() => router.push("/today")}
                 className={cn(
@@ -384,18 +384,21 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
   
   const pressTimer = useRef<NodeJS.Timeout | null>(null);
   const animTimer = useRef<NodeJS.Timeout | null>(null);
+  const showUITimer = useRef<NodeJS.Timeout | null>(null);
   const wasLongPress = useRef(false);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.button !== 0) return;
     setPressPos({ x: e.clientX, y: e.clientY });
-    setIsPressing(true);
     setProgress(0);
     wasLongPress.current = false;
 
-    animTimer.current = setTimeout(() => {
-      setProgress(100);
-    }, 10);
+    showUITimer.current = setTimeout(() => {
+      setIsPressing(true);
+      animTimer.current = setTimeout(() => {
+        setProgress(100);
+      }, 10);
+    }, 150); // Delay showing UI so regular clicks don't flash it
 
     pressTimer.current = setTimeout(() => {
       setIsPressing(false);
@@ -409,6 +412,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
     setProgress(0);
     if (pressTimer.current) clearTimeout(pressTimer.current);
     if (animTimer.current) clearTimeout(animTimer.current);
+    if (showUITimer.current) clearTimeout(showUITimer.current);
   };
 
   const handleMouseUp = () => {
@@ -461,7 +465,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
                 className="h-full bg-blue-500 rounded-full transition-all ease-linear"
                 style={{ 
                   width: `${progress}%`, 
-                  transitionDuration: progress === 100 ? '500ms' : '0ms' 
+                  transitionDuration: progress === 100 ? '350ms' : '0ms' 
                 }} 
               />
             </div>

@@ -13,6 +13,12 @@ async function getUserId() {
   if (!session?.user?.id) throw new Error("Unauthorized");
   return session.user.id;
 }
+
+function getLocalToday() {
+  const date = new Date();
+  const tzOffset = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - tzOffset).toISOString().split('T')[0];
+}
 export async function createItem(text: string, listId?: string, dueDate?: string) {
   const userId = await getUserId();
   const [newItem] = await db.insert(items).values({
@@ -109,7 +115,7 @@ export async function reorderItems(updates: { id: string, position: number }[]) 
 
 export async function getTodayItems() {
     const userId = await getUserId();
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday();
     return db.select()
         .from(items)
         .where(and(like(items.dueDate, `${today}%`), eq(items.userId, userId), eq(items.isDeleted, false)))
@@ -133,7 +139,7 @@ export async function getAllItems() {
 
 export async function getScheduledItems() {
     const userId = await getUserId();
-    const today = new Date().toISOString().split('T')[0];
+    const today = getLocalToday();
     return db.select()
         .from(items)
         .where(and(gte(items.dueDate, today), eq(items.userId, userId), eq(items.isDeleted, false)))
@@ -150,7 +156,7 @@ export async function getCompletedItems() {
 
 export async function getItemsCounts() {
   const userId = await getUserId();
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalToday();
   
   const [all] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false)));
   const [todayCount] = await db.select({ count: sql<number>`count(*)` }).from(items).where(and(eq(items.userId, userId), eq(items.isDeleted, false), like(items.dueDate, `${today}%`)));

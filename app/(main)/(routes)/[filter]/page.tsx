@@ -145,7 +145,17 @@ const FilterPage = () => {
     e.preventDefault();
     if (!newItemText.trim()) return;
 
-    const dueDate = filter === "today" ? new Date().toISOString().split('T')[0] : undefined;
+    const getTodayDefaultLocal = () => {
+      const now = new Date();
+      if (now.getHours() >= 17) {
+        now.setHours(now.getHours() + 1, 0, 0, 0);
+      } else {
+        now.setHours(17, 0, 0, 0);
+      }
+      const tzOffset = now.getTimezoneOffset() * 60000;
+      return new Date(now.getTime() - tzOffset).toISOString().slice(0, 16);
+    };
+    const dueDate = filter === "today" ? getTodayDefaultLocal() : undefined;
     const newItem = await createItem(newItemText, undefined, dueDate);
     
     // Re-fetch all items for the current filter to reflect the new item

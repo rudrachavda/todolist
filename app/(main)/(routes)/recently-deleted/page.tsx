@@ -78,7 +78,7 @@ const RecentlyDeletedPage = () => {
                 {item.text}
               </p>
               <p className="text-xs text-muted-foreground">
-                Deleted on {item.updatedAt ? new Date(item.updatedAt).toLocaleDateString() : "unknown date"}
+                Deleted on {item.updatedAt ? new Date(item.updatedAt + "Z").toLocaleDateString() : "unknown date"}
               </p>
             </div>
             <div className="flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition">

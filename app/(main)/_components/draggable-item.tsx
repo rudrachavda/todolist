@@ -40,7 +40,23 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
   const [isEditing, setIsEditing] = useState(false);
   const [text, setText] = useState(item.text);
   const [description, setDescription] = useState(item.description || '');
-  const [dueDate, setDueDate] = useState(item.dueDate ? new Date(item.dueDate).toISOString().slice(0, 16) : '');
+  const getLocalISOString = (dateStr?: string | null) => {
+    if (!dateStr) return '';
+    if (dateStr.endsWith('Z')) {
+      const d = new Date(dateStr);
+      const tzOffset = d.getTimezoneOffset() * 60000;
+      return new Date(d.getTime() - tzOffset).toISOString().slice(0, 16);
+    }
+    return dateStr.slice(0, 16);
+  };
+
+  const [dueDate, setDueDate] = useState(getLocalISOString(item.dueDate));
+
+  // Sync state if item updates from parent
+  useEffect(() => {
+    setDueDate(getLocalISOString(item.dueDate));
+  }, [item.dueDate]);
+
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [showCustomPicker, setShowCustomPicker] = useState(false);
   
@@ -121,7 +137,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
     onUpdateItem(item.id, {
       text,
       description: description || null,
-      dueDate: dueDate ? new Date(dueDate).toISOString() : null,
+      dueDate: dueDate || null,
     });
   };
 
