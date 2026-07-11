@@ -1,0 +1,67 @@
+# Design System & Code Guidelines
+
+These instructions serve as the ultimate source of truth for generating any application using this minimalist, high-craft design system. When writing frontend code, follow these exact conventions for structure, layout, typography, animations, and formatting to ensure a cohesive product aesthetic.
+
+## 1. Global Code Formatting Rules
+- **Tailwind Class Ordering**: For any text DOMs, classes must strictly follow this order: 
+  `text (size)` -> `font (weight/family)` -> `tracking` -> `leading` -> `text (color)` -> `[any other styles]`. 
+  *Example*: `className="text-sm font-medium tracking-[0.005em] leading-relaxed text-[#1d1d1d] dark:text-zinc-100 mb-4"`
+- **Singular Line DOMs**: Any HTML/JSX elements that are simple (e.g., do not have complex properties, multiple nested children, or complex logic) must be written on a single line to minimize vertical space and improve readability. 
+  *Example*: `<p className="..."> {description} </p>` instead of breaking it across 3 lines.
+
+## 2. Layout & Spacing
+- **Content Containers**: For standard content views or feeds, utilize a constrained max-width to maintain reading focus. Wrapper elements often use `<div className="mx-auto max-w-173 px-6 py-12 sm:py-24">` (where `max-w-173` acts as a ~692px constraint).
+- **Section Spacing**: Sections and disparate data blocks should be generously spaced to let the UI breathe. Use `<main className="space-y-20 md:space-y-24">`.
+- **Data & List Grids**: For structured lists or chronological data, use a strict 2-column grid layout. 
+  *Desktop approach*: Left column is a fixed width (e.g., `md:grid-cols-[6.75rem_1fr]` or `w-27`) serving as a label or timestamp. Right column takes the remaining space for the core content.
+
+## 3. Typography & Colors
+- **Sizing**: Keep text extremely small and tight. The design system relies almost exclusively on `text-sm` for standard body/headers and `text-xs` for meta-data, dates, and auxiliary labels. Avoid overly large header sizes (e.g., `text-4xl`) unless specifically designing hero sections.
+- **Line Height & Letter Spacing**:
+  - Labels / Titles: `leading-none`, `tracking-normal` or `tracking-[0.005em]`.
+  - Body Text: `leading-relaxed` or `leading-snug`, `tracking-[0.005em]`.
+  - Mono text / Numbers: Use `font-mono` with `tabular-nums` for precise alignment of data.
+- **Color Palette**:
+  - *Light Mode*: Primary text is `#1d1d1d` or `#202020`. Secondary text is `#a1a1a1`, `#646464`, or `#1d1d1d` with lower opacity.
+  - *Dark Mode*: Primary text is `dark:text-zinc-100`. Secondary text is `dark:text-zinc-400` or `dark:text-[#646464]`.
+  - Important: Add `dark:antialiased` to primary text to ensure crisp rendering on dark backgrounds.
+
+## 4. UI Elements & Micro-interactions
+- **Card Components (Bento Style)**:
+  - Backgrounds: `bg-[#FBFBFD] dark:bg-[#171717]`.
+  - Borders: Rely on extremely subtle borders: `border-[0.5px] border-solid border-[rgba(225,228,232,0.8)] dark:border-[rgba(29,29,29,0.8)]`.
+  - Aspect Ratio: Visual covers or image blocks generally use `aspect-[1.56/1]`.
+  - Hover Effects: Interactive cards should lift gently using `group-hover:-translate-y-0.5 transition-all duration-400 ease-in-out`.
+  - Shadows: Use multi-layered sparse shadows in light mode, but disable them entirely in dark mode (`dark:shadow-none`).
+- **Interactive Links & Badges**:
+  - Standard pill actions use: `rounded-full bg-zinc-100 px-2.5 py-1 transition-colors duration-200 hover:bg-zinc-950 hover:text-zinc-50 dark:bg-zinc-800 dark:hover:bg-zinc-700`.
+
+## 5. Animations (Framer Motion)
+- **Naming Conventions**: Always standardize Framer Motion variants for lists and wrapper components using the names `container` (for the parent wrapper) and `item` (for the individual children). This guarantees consistency for staggering animations.
+- **Spring Physics**: Default spring configurations should be snappy but smooth. Standardize around: `type: "spring", damping: 25, stiffness: 200`.
+- **Entry Animations (Staggered Blur-Fades)**:
+  - Initial `item` state: `opacity: 0, y: 12, filter: 'blur(12px)'`.
+  - Animate `item` state: `opacity: 1, y: 0, filter: 'blur(0px)'`.
+  - Parent `container`: `transition: { staggerChildren: 0.1 }`.
+  - Note: Always clean up CSS filters post-animation (`transitionEnd: { filter: "none" }`) to preserve browser performance on heavy pages.
+
+## 6. Tech Stack & Architecture
+- **Core Stack**: Next.js (App Router), Tailwind CSS v4, Framer Motion for complex spring/stagger interactions.
+- **Base Components**: Utilize standard un-styled or lightly-styled base components (like Shadcn UI) as structural building blocks, but aggressively override their default styles to match this specific minimalist aesthetic (e.g., using tighter fonts and stripping out heavy borders/shadows).
+- **Specialized Modules**: Abstract complex UI logic into specialized, reusable components located in `app/components/ui/` (e.g., `text-effect`, `magnetic`, `animated-background`) or `app/components/loading-ui/` (e.g., specific contextual loaders). Rely on these pre-built atoms rather than reinventing interaction logic locally.
+
+The perfect colors (in my opinion):
+Colors:
+#9659b9 purple
+#ee98b7 pink
+#0069cc blue
+#50aef6 light blue
+#abcdef ligher blue
+#169b40 green
+#0a461d dark green
+#fcd609 yellow
+#fc9601 orange
+#b64400 dark orange
+#fc3e2f red
+
+database password: aybFDbkcN30XKgbv
