@@ -27,6 +27,7 @@ import {
   arrayMove
 } from '@dnd-kit/sortable';
 import { DraggableItem } from "@/app/(main)/_components/draggable-item";
+import TextareaAutosize from "react-textarea-autosize";
 
 const ListIdPage = () => {
   const params = useParams();
@@ -84,6 +85,7 @@ const ListIdPage = () => {
 
   const onTitleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
+      e.preventDefault();
       onRename();
     }
     if (e.key === "Escape") {
@@ -206,21 +208,21 @@ const ListIdPage = () => {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center gap-x-3 group min-h-[48px] px-8 pt-8 pb-4 shrink-0">
+      <div className="flex items-start gap-x-3 group min-h-[48px] px-8 pt-8 pb-4 shrink-0">
         {isEditingTitle ? (
-          <input
+          <TextareaAutosize
             autoFocus
             value={titleValue}
             onChange={(e) => setTitleValue(e.target.value)}
             onBlur={onRename}
             onKeyDown={onTitleKeyDown}
-            className="text-4xl font-bold bg-transparent border-none outline-none p-0 w-full"
+            className="text-4xl font-bold bg-transparent border-none outline-none p-0 w-full resize-none break-words"
             style={{ color: list.color }}
           />
         ) : (
           <h1 
             onClick={() => setIsEditingTitle(true)}
-            className="text-4xl font-bold cursor-text"
+            className="text-4xl font-bold cursor-text break-words w-full"
             style={{ color: list.color }}
           >
             {list.name}

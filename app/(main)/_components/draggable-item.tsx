@@ -272,7 +272,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
               onDeleteItem(item.id);
             }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-full bg-zinc-100 hover:bg-red-100 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-900/30 dark:hover:text-red-400 text-[#a1a1a1] dark:text-[#646464] h-6 w-6"
+            className="opacity-100 md:opacity-0 group-hover:opacity-100 transition flex items-center justify-center rounded-full bg-zinc-100 hover:bg-red-100 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-900/30 dark:hover:text-red-400 text-[#a1a1a1] dark:text-[#646464] h-6 w-6"
             title="Delete"
           >
             <Trash2 className="h-3.5 w-3.5" />
