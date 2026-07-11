@@ -413,7 +413,7 @@ const FilterPage = () => {
   if (!config) return <div className="p-8">Invalid Filter</div>;
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col min-h-full">
       <div className="flex items-center gap-x-3 px-8 pt-8 pb-4 shrink-0">
         <h1 
           className="text-4xl font-bold tracking-tight"
@@ -429,7 +429,7 @@ const FilterPage = () => {
       <SkeletonReveal 
         isLoading={isLoading} 
         skeleton={<ItemsSkeleton />}
-        className="flex-1 min-h-0 flex flex-col"
+        className="flex flex-col flex-1"
       >
         <DndContext 
           sensors={sensors}
@@ -438,7 +438,7 @@ const FilterPage = () => {
           onDragEnd={handleDragEnd}
         >
           <div 
-            className="flex-1 overflow-y-auto space-y-1 pb-20"
+            className="flex-1 space-y-1 pb-20"
             onClick={(e) => {
               if (e.target === e.currentTarget && filter !== "completed" && filter !== "all") {
                 setShowInput(true);

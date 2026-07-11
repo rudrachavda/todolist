@@ -66,7 +66,7 @@ const RecentlyDeletedPage = () => {
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="flex flex-col min-h-full">
       <div className="flex items-center gap-x-3 px-8 pt-8 pb-4 shrink-0">
         <h1 className="text-4xl font-bold text-neutral-500">
           Recently Deleted
@@ -79,9 +79,9 @@ const RecentlyDeletedPage = () => {
       <SkeletonReveal 
         isLoading={isLoading} 
         skeleton={<DeletedItemsSkeleton />}
-        className="flex-1 min-h-0 flex flex-col"
+        className="flex flex-col flex-1"
       >
-        <div className="flex-1 overflow-y-auto space-y-1 pb-20">
+        <div className="flex-1 space-y-1 pb-20">
           {items.length === 0 && !isLoading && (
             <p className="text-muted-foreground text-center pt-20">
               No recently deleted reminders.

@@ -89,6 +89,25 @@ export const Navigation = () => {
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
+  const [scrolledTitle, setScrolledTitle] = useState<{ text: string, color: string } | null>(null);
+
+  useEffect(() => {
+    const main = document.getElementById('main-scroll');
+    if (!main) return;
+
+    const handleScroll = () => {
+      if (main.scrollTop > 60) {
+         const h1 = main.querySelector('h1');
+         if (h1) {
+            setScrolledTitle({ text: h1.innerText, color: h1.style.color || 'inherit' });
+         }
+      } else {
+         setScrolledTitle(null);
+      }
+    };
+    main.addEventListener('scroll', handleScroll);
+    return () => main.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
 
   const colors = [
     "#b64400", "#9659b9", "#ee98b7", "#0069cc", "#50aef6", 
@@ -445,8 +464,27 @@ export const Navigation = () => {
             onResetWidth={resetWidth}
           />
         ) : (
-          <nav className="bg-transparent px-8 pt-6 w-full flex items-center">
-            {(isMobile && isCollapsed) && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />}
+          <nav className={cn(
+            "w-full flex items-center px-8 transition-all duration-300",
+            scrolledTitle ? "bg-white/70 dark:bg-[#191919]/70 backdrop-blur-md border-b border-border/50 py-3 shadow-sm" : "bg-transparent pt-6 pb-2"
+          )}>
+            {(isMobile && isCollapsed) && (
+              <MenuIcon 
+                onClick={resetWidth} 
+                role="button" 
+                className="h-6 w-6 text-muted-foreground shrink-0 mr-4" 
+              />
+            )}
+            <div className={cn(
+               "flex items-center gap-x-2 transition-all duration-400 ease-in-out transform",
+               scrolledTitle ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+            )}>
+               {scrolledTitle && (
+                  <span className="font-semibold text-lg" style={{ color: scrolledTitle.color }}>
+                     {scrolledTitle.text}
+                  </span>
+               )}
+            </div>
           </nav>
         )}
       </div>
@@ -529,7 +567,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
           isOver && "ring-2 ring-blue-500 ring-offset-2"
         )}
       >
-        <div className="absolute top-0 bottom-0 right-0 flex items-center justify-end px-3 gap-x-2 bg-zinc-100 dark:bg-zinc-800/80 w-full z-0">
+        <div className="absolute top-0 bottom-0 right-0 flex items-center justify-end px-3 gap-x-2 w-full z-0">
            <motion.button 
              animate={{ opacity: showEdit ? 1 : 0, scale: showEdit ? 1 : 0.5 }}
              initial={{ opacity: 0, scale: 0.5 }}

@@ -30,7 +30,7 @@ const MainLayout = ({
   return (
     <div className="h-full flex overflow-hidden relative dark:bg-[#191919]">
       <Navigation />
-      <main className="flex-1 h-full overflow-hidden flex flex-col pt-14 md:pt-0">
+      <main id="main-scroll" className="flex-1 h-full overflow-y-auto flex flex-col pt-14 md:pt-0 scroll-smooth">
         <SearchCommand />
         <SettingsModal />
         {children}
