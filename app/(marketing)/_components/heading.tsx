@@ -54,7 +54,7 @@ export const Heading = () => {
         {!isAuthenticated && !isLoading && (
           <Button asChild size="lg" className="px-8 py-6 text-lg font-medium shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40 transition-all hover:scale-105 active:scale-95">
             <Link href="/sign-in">
-              Get Started for Free
+              Get Started
               <ArrowRight className="h-5 w-5 ml-2" />
             </Link>
           </Button>

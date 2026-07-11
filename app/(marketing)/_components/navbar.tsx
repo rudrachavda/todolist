@@ -30,9 +30,6 @@ export const Navbar = () => {
             <Button variant="secondary" size="sm" asChild className="hidden sm:inline-flex px-4">
               <Link href="/sign-in">Log in</Link>
             </Button>
-            <Button size="sm" asChild className="px-5 shadow-sm">
-              <Link href="/sign-in">Get Reminders</Link>
-            </Button>
           </>
         )}
         {isAuthenticated && !isLoading && (

@@ -82,12 +82,15 @@ export const Item = ({
       )}
     >
       {documentIcon ? (
-        <div className="shrink-0 mr-2 text-[18px]">
+        <div className={cn("shrink-0 text-[18px]", !isCollapsed && "mr-2")}>
           {documentIcon}
         </div>
       ) : color ? (
         <div 
-          className="shrink-0 h-[24px] w-[24px] mr-2 rounded-full flex items-center justify-center shadow-sm"
+          className={cn(
+            "shrink-0 h-[24px] w-[24px] rounded-full flex items-center justify-center shadow-sm", 
+            !isCollapsed && "mr-2"
+          )}
           style={{ backgroundColor: color }}
         >
           <Icon
