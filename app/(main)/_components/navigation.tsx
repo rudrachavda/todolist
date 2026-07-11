@@ -50,6 +50,19 @@ import { Item } from "./item";
 import { Navbar } from "./navbar";
 import { useDroppable } from "@dnd-kit/core";
 
+import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
+
+const ListsSkeleton = () => (
+  <div className="flex flex-col w-full opacity-60 px-3">
+    {[...Array(3)].map((_, i) => (
+      <div key={i} className="flex items-center gap-x-2 py-[3px]">
+        <div className="h-[22px] w-[22px] rounded-sm bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+        <div className="h-4 w-2/3 bg-zinc-200 dark:bg-zinc-800 rounded-md" />
+      </div>
+    ))}
+  </div>
+);
+
 export const Navigation = () => {
   const router = useRouter();
   const settings = useSettings();
@@ -58,7 +71,7 @@ export const Navigation = () => {
   const pathname = usePathname();
   const isMobile = useMediaQuery("(max-width: 768px)");
   
-  const { lists, fetchLists: fetchListsStore, addLocalList, updateLocalList, removeLocalList, itemCounts, fetchItemCounts } = useLists();
+  const { lists, fetchLists: fetchListsStore, addLocalList, updateLocalList, removeLocalList, itemCounts, fetchItemCounts, listLoading } = useLists();
 
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
@@ -364,35 +377,37 @@ export const Navigation = () => {
         )}
         <div className="mt-8 flex-1 overflow-y-auto">
           {!isCollapsed && <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>}
-          <div className="space-y-1 pb-4">
-            {lists.map((list) => (
-                <DroppableSidebarItem 
-                    key={list.id}
-                    list={list}
-                    onUpdateList={onUpdateList}
-                    onDeleteList={onDeleteList}
-                    router={router}
-                    params={params}
-                    ListIcon={ListIcon}
-                    colors={colors}
-                    itemCounts={itemCounts}
-                    isCollapsed={isCollapsed}
-                />
-            ))}
-            <Item
-                onClick={handleCreateList}
-                icon={Plus}
-                label="Add List"
-                isCollapsed={isCollapsed}
-            />
-            <div className="pt-4 mt-4 border-t border-secondary-foreground/10">
-                <DroppableTrashItem
-                    router={router}
-                    pathname={pathname}
-                    isCollapsed={isCollapsed}
-                />
+          <SkeletonReveal isLoading={listLoading} skeleton={<ListsSkeleton />} className="pb-4">
+            <div className="space-y-1">
+              {lists.map((list) => (
+                  <DroppableSidebarItem 
+                      key={list.id}
+                      list={list}
+                      onUpdateList={onUpdateList}
+                      onDeleteList={onDeleteList}
+                      router={router}
+                      params={params}
+                      ListIcon={ListIcon}
+                      colors={colors}
+                      itemCounts={itemCounts}
+                      isCollapsed={isCollapsed}
+                  />
+              ))}
+              <Item
+                  onClick={handleCreateList}
+                  icon={Plus}
+                  label="Add List"
+                  isCollapsed={isCollapsed}
+              />
+              <div className="pt-4 mt-4 border-t border-secondary-foreground/10">
+                  <DroppableTrashItem
+                      router={router}
+                      pathname={pathname}
+                      isCollapsed={isCollapsed}
+                  />
+              </div>
             </div>
-          </div>
+          </SkeletonReveal>
         </div>
         <div className="mt-auto border-t border-secondary-foreground/10">
           <UserItem isCollapsed={isCollapsed} />

@@ -28,6 +28,23 @@ import {
 } from '@dnd-kit/sortable';
 import { DraggableItem } from "@/app/(main)/_components/draggable-item";
 import TextareaAutosize from "react-textarea-autosize";
+import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
+
+const ItemsSkeleton = () => (
+  <div className="flex flex-col w-full opacity-60">
+    {[...Array(5)].map((_, i) => (
+      <div key={i} className="flex items-start gap-x-3 py-3 px-8 border-b-[0.5px] border-secondary/50 dark:border-secondary/30">
+        <div className="flex items-center justify-center h-[22px] shrink-0">
+          <div className="h-5 w-5 rounded-full border border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-800" />
+        </div>
+        <div className="flex-1 min-w-0 flex flex-col gap-2 pt-1">
+          <div className="h-4 w-3/4 bg-zinc-200 dark:bg-zinc-800 rounded-md" />
+          {i % 2 === 0 && <div className="h-3 w-1/2 bg-zinc-200 dark:bg-zinc-800 rounded-md" />}
+        </div>
+      </div>
+    ))}
+  </div>
+);
 
 const ListIdPage = () => {
   const params = useParams();
@@ -38,6 +55,7 @@ const ListIdPage = () => {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
   const [activeItem, setActiveItem] = useState<ItemSchema | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { lists, updateLocalList, fetchItemCounts } = useLists(); 
   
@@ -62,14 +80,16 @@ const ListIdPage = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      setIsLoading(true);
       const itemsData = await getItemsByList(listId);
       setItems(itemsData);
-      if (list) {
+      if (list && !titleValue) {
         setTitleValue(list.name);
       }
+      setIsLoading(false);
     };
     fetchData();
-  }, [listId, list]);
+  }, [listId, list?.name]);
 
   const onRename = async () => {
     if (!titleValue.trim() || titleValue === list?.name) {
@@ -233,12 +253,17 @@ const ListIdPage = () => {
         </div>
       </div>
 
-      <DndContext 
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
+      <SkeletonReveal 
+        isLoading={isLoading} 
+        skeleton={<ItemsSkeleton />}
+        className="flex-1 min-h-0 flex flex-col"
       >
+        <DndContext 
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
         <div 
           className="flex-1 overflow-y-auto space-y-1 pb-20"
           onClick={(e) => {
@@ -294,9 +319,19 @@ const ListIdPage = () => {
             </form>
           )}
         </div>
-
-
+        <DragOverlay>
+          {activeItem ? (
+            <DraggableItem
+              item={{ ...activeItem, listColor: list?.color, listName: list?.name }}
+              onUpdateItem={handleUpdateItem}
+              onDeleteItem={handleDeleteItem}
+              onToggleCompletion={handleToggleCompletion}
+              isOverlay
+            />
+          ) : null}
+        </DragOverlay>
       </DndContext>
+      </SkeletonReveal>
     </div>
   );
 }
