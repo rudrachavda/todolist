@@ -127,6 +127,9 @@ export const Navigation = () => {
       if (newWidth < 72) newWidth = 72;
     } else {
       setIsCollapsed(false);
+      if (!isMobile && Math.abs(newWidth - 315) < 15) {
+        newWidth = 315;
+      }
       if (newWidth > 480) newWidth = 480;
     }
 
