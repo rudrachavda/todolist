@@ -1,17 +1,17 @@
-import { drizzle } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from './schema';
-import path from 'path';
 
 const globalForDb = globalThis as unknown as {
-  sqlite: Database.Database | undefined;
+  postgres: postgres.Sql | undefined;
 };
 
-export const sqlite =
-  globalForDb.sqlite ?? new Database(path.join(process.cwd(), 'sqlite.db'));
+// Use DATABASE_URL for Postgres connection
+const connectionString = process.env.DATABASE_URL!;
 
-if (process.env.NODE_ENV !== 'production') globalForDb.sqlite = sqlite;
+// Cache the database connection in development. This avoids creating a new connection on every HMR update.
+export const sql = globalForDb.postgres ?? postgres(connectionString, { prepare: false });
 
-sqlite.pragma('journal_mode = WAL');
+if (process.env.NODE_ENV !== 'production') globalForDb.postgres = sql;
 
-export const db = drizzle(sqlite, { schema });
+export const db = drizzle(sql, { schema });

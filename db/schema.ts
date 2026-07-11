@@ -1,28 +1,29 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { pgTable, text, integer, boolean, timestamp, real, primaryKey } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
+import type { AdapterAccount } from "next-auth/adapters";
 
-export const lists = sqliteTable("lists", {
+export const lists = pgTable("lists", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   userId: text("userId").notNull(),
   name: text("name").notNull(),
   color: text("color").notNull(),
   icon: text("icon"),
-  createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updatedAt").default(sql`CURRENT_TIMESTAMP`),
+  createdAt: timestamp("createdAt", { mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updatedAt", { mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
 });
 
-export const items = sqliteTable("items", {
+export const items = pgTable("items", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   listId: text("listId").references(() => lists.id, { onDelete: "cascade" }),
   userId: text("userId").notNull(),
   text: text("text").notNull(),
   description: text("description"),
   dueDate: text("dueDate"), 
-  isCompleted: integer("isCompleted", { mode: "boolean" }).notNull().default(false),
-  isDeleted: integer("isDeleted", { mode: "boolean" }).notNull().default(false),
+  isCompleted: boolean("isCompleted").notNull().default(false),
+  isDeleted: boolean("isDeleted").notNull().default(false),
   position: real("position").default(0),
-  createdAt: text("createdAt").default(sql`CURRENT_TIMESTAMP`),
-  updatedAt: text("updatedAt").default(sql`CURRENT_TIMESTAMP`),
+  createdAt: timestamp("createdAt", { mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
+  updatedAt: timestamp("updatedAt", { mode: "string" }).default(sql`CURRENT_TIMESTAMP`),
 });
 
 export type List = typeof lists.$inferSelect;
@@ -33,18 +34,15 @@ export type NewItem = typeof items.$inferInsert;
 
 // Auth Tables
 
-import type { AdapterAccount } from "next-auth/adapters";
-import { primaryKey } from "drizzle-orm/sqlite-core";
-
-export const users = sqliteTable("user", {
+export const users = pgTable("user", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   name: text("name"),
   email: text("email").notNull(),
-  emailVerified: integer("emailVerified", { mode: "timestamp_ms" }),
+  emailVerified: timestamp("emailVerified", { mode: "date" }),
   image: text("image"),
 });
 
-export const accounts = sqliteTable(
+export const accounts = pgTable(
   "account",
   {
     userId: text("userId")
@@ -66,20 +64,20 @@ export const accounts = sqliteTable(
   })
 );
 
-export const sessions = sqliteTable("session", {
+export const sessions = pgTable("session", {
   sessionToken: text("sessionToken").primaryKey(),
   userId: text("userId")
     .notNull()
     .references(() => users.id, { onDelete: "cascade" }),
-  expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+  expires: timestamp("expires", { mode: "date" }).notNull(),
 });
 
-export const verificationTokens = sqliteTable(
+export const verificationTokens = pgTable(
   "verificationToken",
   {
     identifier: text("identifier").notNull(),
     token: text("token").notNull(),
-    expires: integer("expires", { mode: "timestamp_ms" }).notNull(),
+    expires: timestamp("expires", { mode: "date" }).notNull(),
   },
   (vt) => ({
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
