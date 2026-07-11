@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useOnClickOutside } from "usehooks-ts";
+import TextareaAutosize from "react-textarea-autosize";
 
 import {
   DropdownMenu,
@@ -231,7 +232,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
           </p>
           {item.description && (
             <p 
-              className="text-xs tracking-[0.005em] leading-none text-[#646464] dark:text-zinc-400 line-clamp-2 mt-0.5 p-0 m-0 cursor-text self-start max-w-full"
+              className="text-xs tracking-[0.005em] leading-normal text-[#646464] dark:text-zinc-400 whitespace-pre-wrap break-words mt-0.5 p-0 m-0 cursor-text self-start max-w-full"
               onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
               onPointerDown={(e) => e.stopPropagation()}
             >
@@ -288,12 +289,13 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
           />
-          <textarea
+          <TextareaAutosize
             placeholder="Notes"
-            className="w-full bg-transparent border-none outline-none text-xs tracking-[0.005em] leading-none text-[#646464] dark:text-zinc-400 resize-none p-0 m-0 mt-0.5"
+            className="w-full bg-transparent border-none outline-none text-xs tracking-[0.005em] leading-normal text-[#646464] dark:text-zinc-400 resize-none p-0 m-0 mt-0.5"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            rows={2}
+            minRows={1}
+            maxRows={10}
           />
           <div className="flex items-center gap-x-2 mt-2.5">
             <DropdownMenu 
