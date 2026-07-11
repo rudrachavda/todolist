@@ -81,7 +81,7 @@ const RecentlyDeletedPage = () => {
                 Deleted on {item.updatedAt ? new Date(item.updatedAt + "Z").toLocaleDateString() : "unknown date"}
               </p>
             </div>
-            <div className="flex items-center gap-x-2 opacity-0 group-hover:opacity-100 transition">
+            <div className="flex items-center gap-x-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition">
               <button
                 onClick={() => handleRestore(item.id)}
                 className="p-2 hover:bg-secondary rounded-full"

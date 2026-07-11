@@ -124,19 +124,19 @@ export const Item = ({
             <span className={cn(
                "text-xs font-medium transition-transform duration-200 ease-in-out absolute right-0",
                (active && activeVariant === "blue") ? "text-white/80" : "text-muted-foreground",
-               actions ? "group-hover:-translate-x-6" : ""
+               (actions || !!id) ? "-translate-x-6 md:translate-x-0 md:group-hover:-translate-x-6" : ""
             )}>
               {count}
             </span>
           )}
 
           {actions && (
-            <div className="absolute right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute right-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
               {actions}
             </div>
           )}
           {!!id && !actions && (
-            <div className="absolute right-0 opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute right-0 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity">
               <DropdownMenu>
                 <DropdownMenuTrigger
                   onClick={(e) => e.stopPropagation()}
