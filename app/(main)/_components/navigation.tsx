@@ -17,6 +17,7 @@ import {
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState, useCallback } from "react";
 import { useMediaQuery } from "usehooks-ts";
+import Image from "next/image";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -88,8 +89,15 @@ export const Navigation = () => {
   useEffect(() => {
     if (isMobile) {
       collapse();
-    } else {
-      resetWidth();
+    } else if (sidebarRef.current && navbarRef.current) {
+      const savedWidth = localStorage.getItem("sidebarWidth");
+      if (savedWidth) {
+        const width = parseInt(savedWidth, 10);
+        setIsCollapsed(width < 150);
+        sidebarRef.current.style.width = `${width}px`;
+        navbarRef.current.style.setProperty("left", `${width}px`);
+        navbarRef.current.style.setProperty("width", `calc(100% - ${width}px)`);
+      }
     }
   }, [isMobile]);
 
@@ -114,8 +122,13 @@ export const Navigation = () => {
     if (!isResizingRef.current) return;
     let newWidth = event.clientX;
 
-    if (newWidth < 315) newWidth = 315;
-    if (newWidth > 480) newWidth = 480;
+    if (newWidth < 150) {
+      setIsCollapsed(true);
+      if (newWidth < 72) newWidth = 72;
+    } else {
+      setIsCollapsed(false);
+      if (newWidth > 480) newWidth = 480;
+    }
 
     if (sidebarRef.current && navbarRef.current) {
       sidebarRef.current.style.width = `${newWidth}px`;
@@ -128,6 +141,26 @@ export const Navigation = () => {
     isResizingRef.current = false;
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
+
+    if (sidebarRef.current && navbarRef.current) {
+      const currentWidth = parseInt(sidebarRef.current.style.width, 10);
+      let targetWidth = currentWidth;
+      
+      if (currentWidth < 150) {
+        targetWidth = 72;
+        setIsCollapsed(true);
+      } else if (currentWidth < 240) {
+        targetWidth = 240;
+        setIsCollapsed(false);
+      } else {
+        setIsCollapsed(false);
+      }
+
+      sidebarRef.current.style.width = `${targetWidth}px`;
+      navbarRef.current.style.setProperty("left", `${targetWidth}px`);
+      navbarRef.current.style.setProperty("width", `calc(100% - ${targetWidth}px)`);
+      localStorage.setItem("sidebarWidth", targetWidth.toString());
+    }
   };
 
   const resetWidth = () => {
@@ -144,6 +177,9 @@ export const Navigation = () => {
         "left",
         isMobile ? "100%" : "315px"
       );
+      if (!isMobile) {
+        localStorage.setItem("sidebarWidth", "315");
+      }
       setTimeout(() => setIsResetting(false), 300);
     }
   };
@@ -153,9 +189,9 @@ export const Navigation = () => {
       setIsCollapsed(true);
       setIsResetting(true);
 
-      sidebarRef.current.style.width = "0";
-      navbarRef.current.style.setProperty("width", "100%");
-      navbarRef.current.style.setProperty("left", "0");
+      sidebarRef.current.style.width = isMobile ? "0" : "72px";
+      navbarRef.current.style.setProperty("width", isMobile ? "100%" : "calc(100% - 72px)");
+      navbarRef.current.style.setProperty("left", isMobile ? "0" : "72px");
       setTimeout(() => setIsResetting(false), 300);
     }
   }
@@ -200,7 +236,7 @@ export const Navigation = () => {
       <aside
         ref={sidebarRef}
         className={cn(
-          "group/sidebar h-full select-none bg-secondary dark:bg-[#121212] overflow-y-auto relative flex w-60 flex-col z-[99999]",
+          "group/sidebar h-full select-none bg-secondary dark:bg-[#121212] overflow-y-auto relative flex w-[315px] flex-col z-[99999]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "w-0"
         )}
@@ -209,14 +245,31 @@ export const Navigation = () => {
           onClick={collapse}
           role="button"
           className={cn(
-            "h-6 w-6 text-muted-foreground rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 absolute top-3 right-2 opacity-0 group-hover/sidebar:opacity-100 transition",
-            isMobile && "opacity-100"
+            "h-6 w-6 text-muted-foreground rounded-sm hover:bg-neutral-300 dark:hover:bg-neutral-600 absolute top-3 right-2 transition hidden",
+            isMobile && "block opacity-100"
           )}
         >
           <ChevronsLeft className="h-6 w-6" />
         </div>
+        <div className="flex items-center px-4 py-3 min-h-[50px] mb-2">
+          {isCollapsed ? (
+            <div 
+              role="button" 
+              onClick={resetWidth} 
+              className="h-10 w-10 mx-auto hover:bg-neutral-300 dark:hover:bg-neutral-700/50 rounded-lg flex items-center justify-center transition cursor-pointer"
+            >
+              <Image src="/logo.svg" alt="Logo" width={22} height={22} className="dark:hidden object-contain" />
+              <Image src="/logo-dark.svg" alt="Logo" width={22} height={22} className="hidden dark:block object-contain" />
+            </div>
+          ) : (
+            <div className="flex items-center gap-x-2 w-full">
+              <Image src="/logo.svg" alt="Logo" width={22} height={22} className="dark:hidden object-contain" />
+              <Image src="/logo-dark.svg" alt="Logo" width={22} height={22} className="hidden dark:block object-contain" />
+              <span className="font-bold text-lg tracking-tight">Reminders</span>
+            </div>
+          )}
+        </div>
         <div>
-          <UserItem />
           <Item
             label="Search"
             icon={Search}
@@ -224,6 +277,7 @@ export const Navigation = () => {
             onClick={search.onOpen}
             active={search.isOpen}
             activeVariant="gray"
+            isCollapsed={isCollapsed}
           />
           <Item
             label="Settings"
@@ -231,72 +285,82 @@ export const Navigation = () => {
             onClick={settings.onOpen}
             active={settings.isOpen}
             activeVariant="gray"
+            isCollapsed={isCollapsed}
           />
         </div>
-        <div className="mt-4 px-3 grid grid-cols-2 gap-2">
-            <div 
-                onClick={() => router.push("/today")}
-                className={cn(
-                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                  "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
-                )}
-            >
-                <div className="flex justify-between items-start">
-                    <div className="text-white drop-shadow-sm">
-                        <Calendar className="h-6 w-6" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.today}</span>
-                </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Today</span>
-            </div>
-            <div 
-                onClick={() => router.push("/scheduled")}
-                className={cn(
-                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                  "bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700"
-                )}
-            >
-                <div className="flex justify-between items-start">
-                    <div className="text-white drop-shadow-sm">
-                        <Clock className="h-6 w-6" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.scheduled}</span>
-                </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Scheduled</span>
-            </div>
-            <div 
-                onClick={() => router.push("/all")}
-                className={cn(
-                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                  "bg-gradient-to-br from-zinc-600 to-zinc-800 hover:from-zinc-700 hover:to-zinc-900"
-                )}
-            >
-                <div className="flex justify-between items-start">
-                    <div className="text-white drop-shadow-sm">
-                        <Inbox className="h-6 w-6" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.all}</span>
-                </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">All</span>
-            </div>
-            <div 
-                onClick={() => router.push("/completed")}
-                className={cn(
-                  "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                  "bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700"
-                )}
-            >
-                <div className="flex justify-between items-start">
-                    <div className="text-white drop-shadow-sm">
-                        <CheckCircle2 className="h-6 w-6" strokeWidth={2.5} />
-                    </div>
-                    <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.completed}</span>
-                </div>
-                <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Completed</span>
-            </div>
-        </div>
+        {!isCollapsed ? (
+          <div className="mt-4 px-3 grid grid-cols-2 gap-2">
+              <div 
+                  onClick={() => router.push("/today")}
+                  className={cn(
+                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                    "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
+                  )}
+              >
+                  <div className="flex justify-between items-start">
+                      <div className="text-white drop-shadow-sm">
+                          <Calendar className="h-6 w-6" strokeWidth={2.5} />
+                      </div>
+                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.today}</span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Today</span>
+              </div>
+              <div 
+                  onClick={() => router.push("/scheduled")}
+                  className={cn(
+                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                    "bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700"
+                  )}
+              >
+                  <div className="flex justify-between items-start">
+                      <div className="text-white drop-shadow-sm">
+                          <Clock className="h-6 w-6" strokeWidth={2.5} />
+                      </div>
+                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.scheduled}</span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Scheduled</span>
+              </div>
+              <div 
+                  onClick={() => router.push("/all")}
+                  className={cn(
+                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                    "bg-gradient-to-br from-zinc-600 to-zinc-800 hover:from-zinc-700 hover:to-zinc-900"
+                  )}
+              >
+                  <div className="flex justify-between items-start">
+                      <div className="text-white drop-shadow-sm">
+                          <Inbox className="h-6 w-6" strokeWidth={2.5} />
+                      </div>
+                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.all}</span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">All</span>
+              </div>
+              <div 
+                  onClick={() => router.push("/completed")}
+                  className={cn(
+                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                    "bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700"
+                  )}
+              >
+                  <div className="flex justify-between items-start">
+                      <div className="text-white drop-shadow-sm">
+                          <CheckCircle2 className="h-6 w-6" strokeWidth={2.5} />
+                      </div>
+                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.completed}</span>
+                  </div>
+                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Completed</span>
+              </div>
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-col gap-1 w-full items-center">
+            <Item icon={Calendar} label="Today" isCollapsed={true} onClick={() => router.push("/today")} />
+            <Item icon={Clock} label="Scheduled" isCollapsed={true} onClick={() => router.push("/scheduled")} />
+            <Item icon={Inbox} label="All" isCollapsed={true} onClick={() => router.push("/all")} />
+            <Item icon={CheckCircle2} label="Completed" isCollapsed={true} onClick={() => router.push("/completed")} />
+          </div>
+        )}
         <div className="mt-8 flex-1 overflow-y-auto">
-          <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>
+          {!isCollapsed && <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>}
           <div className="space-y-1 pb-4">
             {lists.map((list) => (
                 <DroppableSidebarItem 
@@ -309,20 +373,26 @@ export const Navigation = () => {
                     ListIcon={ListIcon}
                     colors={colors}
                     itemCounts={itemCounts}
+                    isCollapsed={isCollapsed}
                 />
             ))}
             <Item
                 onClick={handleCreateList}
                 icon={Plus}
                 label="Add List"
+                isCollapsed={isCollapsed}
             />
             <div className="pt-4 mt-4 border-t border-secondary-foreground/10">
                 <DroppableTrashItem
                     router={router}
                     pathname={pathname}
+                    isCollapsed={isCollapsed}
                 />
             </div>
           </div>
+        </div>
+        <div className="mt-auto border-t border-secondary-foreground/10">
+          <UserItem isCollapsed={isCollapsed} />
         </div>
         <div
           onMouseDown={handleMouseDown}
@@ -333,19 +403,19 @@ export const Navigation = () => {
       <div
         ref={navbarRef}
         className={cn(
-          "absolute top-0 z-[99999] left-60 w-[calc(100%-315px)]",
+          "absolute top-0 z-[99999] left-[315px] w-[calc(100%-315px)]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "left-0 w-full"
         )}
       >
         {!!params.documentId ? (
           <Navbar
-            isCollapsed={isCollapsed}
+            isCollapsed={isMobile && isCollapsed}
             onResetWidth={resetWidth}
           />
         ) : (
           <nav className="bg-transparent px-3 py-2 w-full">
-            {isCollapsed && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />}
+            {(isMobile && isCollapsed) && <MenuIcon onClick={resetWidth} role="button" className="h-6 w-6 text-muted-foreground" />}
           </nav>
         )}
       </div>
@@ -362,9 +432,10 @@ interface DroppableSidebarItemProps {
   ListIcon: any; // LucideIcon
   colors: string[];
   itemCounts: any;
+  isCollapsed?: boolean;
 }
 
-const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params, ListIcon, colors, itemCounts }: DroppableSidebarItemProps) => {
+const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params, ListIcon, colors, itemCounts, isCollapsed }: DroppableSidebarItemProps) => {
   const {setNodeRef, isOver} = useDroppable({
     id: list.id,
     data: {
@@ -459,6 +530,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
               count={itemCounts?.listCounts?.[list.id] || 0}
               onClick={() => router.push(`/lists/${list.id}`)}
               active={params.listId === list.id}
+              isCollapsed={isCollapsed}
           />
         </div>
 
@@ -548,7 +620,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
   );
 };
 
-const DroppableTrashItem = ({ router, pathname }: { router: any, pathname: string }) => {
+const DroppableTrashItem = ({ router, pathname, isCollapsed }: { router: any, pathname: string, isCollapsed?: boolean }) => {
   const {setNodeRef, isOver} = useDroppable({
     id: "trash",
     data: {
@@ -565,6 +637,7 @@ const DroppableTrashItem = ({ router, pathname }: { router: any, pathname: strin
           icon={Trash2}
           onClick={() => router.push("/recently-deleted")}
           active={pathname === "/recently-deleted"}
+          isCollapsed={isCollapsed}
       />
     </div>
   );

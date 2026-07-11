@@ -7,6 +7,7 @@ import {
   Avatar,
   AvatarImage
 } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,23 +17,25 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export const UserItem = () => {
+export const UserItem = ({ isCollapsed }: { isCollapsed?: boolean }) => {
   const { data: session } = useSession();
   const user = session?.user;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div role="button" className="flex items-center text-sm px-6 py-3 w-full hover:bg-primary/5">
-          <div className="gap-x-2 flex items-center max-w-[150px]">
-            <Avatar className="h-5 w-5">
+        <div role="button" className={cn("flex items-center text-sm px-6 py-3 w-full hover:bg-primary/5", isCollapsed && "justify-center px-0")}>
+          <div className={cn("gap-x-2 flex items-center max-w-[150px]", isCollapsed && "max-w-none")}>
+            <Avatar className="h-6 w-6">
               <AvatarImage src={user?.image || ""} />
             </Avatar>
-            <span className="text-start font-medium line-clamp-1">
-              {user?.name}&apos;s Reminders
-            </span>
+            {!isCollapsed && (
+              <span className="text-start font-medium line-clamp-1">
+                {user?.name}&apos;s Reminders
+              </span>
+            )}
           </div>
-          <ChevronsLeftRight className="rotate-90 ml-2 text-muted-foreground h-4 w-4" />
+          {!isCollapsed && <ChevronsLeftRight className="rotate-90 ml-2 text-muted-foreground h-4 w-4" />}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent

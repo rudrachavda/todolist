@@ -27,7 +27,7 @@ const DocumentsPage = () => {
     <div className="h-full flex flex-col p-8 space-y-8">
       <div className="space-y-2">
         <h2 className="text-3xl font-bold tracking-tight">
-          Welcome back, {user?.firstName}
+          Welcome back, {user?.fullName || "User"}
         </h2>
         <p className="text-muted-foreground">
           Here&apos;s what&apos;s happening with your reminders today.
