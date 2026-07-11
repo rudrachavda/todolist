@@ -66,12 +66,12 @@ const RecentlyDeletedPage = () => {
   };
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-6">
-      <div className="flex items-center gap-x-3">
+    <div className="h-full flex flex-col">
+      <div className="flex items-center gap-x-3 px-8 pt-8 pb-4 shrink-0">
         <h1 className="text-4xl font-bold text-neutral-500">
           Recently Deleted
         </h1>
-        <div className="ml-auto text-4xl font-light opacity-50">
+        <div className="ml-auto text-4xl font-light opacity-50 tabular-nums">
           {items.length}
         </div>
       </div>
@@ -79,9 +79,9 @@ const RecentlyDeletedPage = () => {
       <SkeletonReveal 
         isLoading={isLoading} 
         skeleton={<DeletedItemsSkeleton />}
-        className="flex-1 overflow-y-auto"
+        className="flex-1 min-h-0 flex flex-col"
       >
-        <div className="space-y-1">
+        <div className="flex-1 overflow-y-auto space-y-1 pb-20">
           {items.length === 0 && !isLoading && (
             <p className="text-muted-foreground text-center pt-20">
               No recently deleted reminders.
@@ -90,33 +90,37 @@ const RecentlyDeletedPage = () => {
           {items.map((item) => (
             <div 
               key={item.id}
-              className="group flex items-start gap-x-3 py-3 px-8 shrink-0 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0"
+              className={cn(
+                "group flex items-start gap-x-3 py-3 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0 relative outline-none",
+                "transition-colors duration-200 ease-in-out px-8",
+                "focus:bg-zinc-100 dark:focus:bg-zinc-800/50 focus:rounded-none focus:border-transparent"
+              )}
             >
-              <div className="shrink-0 opacity-50 flex items-center h-[22px]">
-                <Trash2 className="h-5 w-5 text-[#a1a1a1] dark:text-[#646464]" />
+              <div className="flex items-center justify-center h-[22px] shrink-0">
+                <Trash2 className="h-4 w-4 text-[#a1a1a1] dark:text-[#646464]" />
               </div>
-              <div className="flex-1 min-w-0 flex flex-col justify-start">
-                <p className="text-sm font-medium tracking-[0.005em] leading-[22px] text-[#a1a1a1] dark:text-[#646464] dark:antialiased truncate p-0 m-0 self-start max-w-full">
+              <div className="flex-1 min-w-0 flex flex-col">
+                <p className="text-sm font-medium tracking-[0.005em] leading-[22px] h-[22px] text-[#1d1d1d] dark:text-zinc-100 dark:antialiased truncate p-0 m-0 self-start max-w-full">
                   {item.text}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  Deleted on {item.updatedAt ? new Date(item.updatedAt + "Z").toLocaleDateString() : "unknown date"}
+                <p className="text-xs tracking-[0.005em] leading-normal text-[#646464] dark:text-zinc-400 whitespace-pre-wrap break-words mt-0.5 p-0 m-0 self-start max-w-full">
+                  Deleted on {item.updatedAt ? new Date(item.updatedAt + "Z").toLocaleDateString(undefined, { dateStyle: 'medium' }) : "unknown date"}
                 </p>
               </div>
-              <div className="flex items-center gap-x-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition">
+              <div className="flex items-center gap-x-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition shrink-0 h-[22px]">
                 <button
                   onClick={() => handleRestore(item.id)}
-                  className="p-2 hover:bg-secondary rounded-full"
+                  className="flex items-center justify-center rounded-full bg-zinc-100 hover:bg-blue-100 hover:text-blue-600 dark:bg-zinc-800 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 text-[#a1a1a1] dark:text-[#646464] h-6 w-6 transition"
                   title="Restore"
                 >
-                  <Undo2 className="h-5 w-5 text-blue-500" />
+                  <Undo2 className="h-3.5 w-3.5" />
                 </button>
                 <button
                   onClick={() => handlePermanentDelete(item.id)}
-                  className="p-2 hover:bg-red-500/10 rounded-full"
+                  className="flex items-center justify-center rounded-full bg-zinc-100 hover:bg-red-100 hover:text-red-600 dark:bg-zinc-800 dark:hover:bg-red-900/30 dark:hover:text-red-400 text-[#a1a1a1] dark:text-[#646464] h-6 w-6 transition"
                   title="Delete Permanently"
                 >
-                  <Trash2 className="h-5 w-5 text-red-500" />
+                  <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
