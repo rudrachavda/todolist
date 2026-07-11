@@ -17,7 +17,7 @@ export const Navbar = () => {
 
   return (
     <div className={cn(
-      "z-50 bg-background dark:bg-[#000000] fixed top-0 flex items-center w-full p-6",
+      "z-50 bg-background fixed top-0 flex items-center w-full p-6",
       scrolled && "border-b shadow-sm"
     )}>
       <Logo />
@@ -27,17 +27,17 @@ export const Navbar = () => {
         )}
         {!isAuthenticated && !isLoading && (
           <>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="secondary" size="sm" asChild className="hidden sm:inline-flex px-4">
               <Link href="/sign-in">Log in</Link>
             </Button>
-            <Button size="sm" asChild>
+            <Button size="sm" asChild className="px-5 shadow-sm">
               <Link href="/sign-in">Get Reminders</Link>
             </Button>
           </>
         )}
         {isAuthenticated && !isLoading && (
           <>
-            <Button variant="ghost" size="sm" asChild>
+            <Button variant="secondary" size="sm" asChild className="px-4">
               <Link href="/documents">
                 Open Reminders
               </Link>
