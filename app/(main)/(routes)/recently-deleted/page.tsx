@@ -13,7 +13,7 @@ const DeletedItemsSkeleton = () => (
     {[...Array(5)].map((_, i) => (
       <div key={i} className="flex items-start gap-x-3 py-3 px-8 border-b-[0.5px] border-secondary/50 dark:border-secondary/30">
         <div className="flex items-center justify-center h-[22px] shrink-0">
-          <Trash2 className="h-5 w-5 text-[#a1a1a1] dark:text-[#646464] opacity-50" />
+          <Trash2 className="h-4 w-4 text-[#a1a1a1] dark:text-[#646464] opacity-50" />
         </div>
         <div className="flex-1 min-w-0 flex flex-col gap-2 pt-1">
           <div className="h-4 w-3/4 bg-zinc-200 dark:bg-zinc-800 rounded-md" />

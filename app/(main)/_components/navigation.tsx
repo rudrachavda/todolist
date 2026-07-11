@@ -408,7 +408,7 @@ export const Navigation = () => {
         <div className="mt-8 flex-1 overflow-y-auto">
           {!isCollapsed && <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>}
           <SkeletonReveal isLoading={listLoading} skeleton={<ListsSkeleton />} className="pb-4">
-            <div className="space-y-1">
+            <div className="space-y-0">
               {lists.map((list) => (
                   <DroppableSidebarItem 
                       key={list.id}
@@ -597,7 +597,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
           onDragEnd={handleDragEnd}
           whileDrag={{ scale: 0.98 }}
           transition={SPRING_CONFIG}
-          className="relative z-10 bg-[#f8f9fa] dark:bg-[#1d1d1d] cursor-grab active:cursor-grabbing"
+          className="relative z-10 bg-secondary dark:bg-[#121212] cursor-grab active:cursor-grabbing"
         >
           <div onClick={(e) => {
              if (Math.abs(x.get()) > 5) {
