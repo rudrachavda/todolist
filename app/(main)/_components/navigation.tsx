@@ -12,7 +12,8 @@ import {
   CheckCircle2,
   List as ListIcon,
   MoreHorizontal,
-  Trash2
+  Trash2,
+  Pencil
 } from "lucide-react";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { ElementRef, useEffect, useRef, useState, useCallback } from "react";
@@ -49,6 +50,15 @@ import { UserItem } from "./user-item";
 import { Item } from "./item";
 import { Navbar } from "./navbar";
 import { useDroppable } from "@dnd-kit/core";
+import { motion, useMotionValue, useTransform, animate, useMotionValueEvent, AnimatePresence } from "framer-motion";
+
+const SNAP_POINTS = {
+    LEFT: -96,
+    CENTER: 0,
+    RIGHT: 0,
+};
+const POSITION_THRESHOLD = 48;
+const SPRING_CONFIG = { type: "spring", duration: 0.5, bounce: 0 };
 
 import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
 
@@ -78,6 +88,7 @@ export const Navigation = () => {
   const navbarRef = useRef<ElementRef<"div">>(null);
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
 
   const colors = [
     "#b64400", "#9659b9", "#ee98b7", "#0069cc", "#50aef6", 
@@ -391,6 +402,8 @@ export const Navigation = () => {
                       colors={colors}
                       itemCounts={itemCounts}
                       isCollapsed={isCollapsed}
+                      openSwipeId={openSwipeId}
+                      setOpenSwipeId={setOpenSwipeId}
                   />
               ))}
               <Item
@@ -415,7 +428,7 @@ export const Navigation = () => {
         <div
           onMouseDown={handleMouseDown}
           onClick={resetWidth}
-          className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-primary/10 right-0 top-0"
+          className="opacity-0 group-hover/sidebar:opacity-100 transition cursor-ew-resize absolute h-full w-1 bg-primary/10 right-0 top-0 z-[99999]"
         />
       </aside>
       <div
@@ -451,9 +464,11 @@ interface DroppableSidebarItemProps {
   colors: string[];
   itemCounts: any;
   isCollapsed?: boolean;
+  openSwipeId: string | null;
+  setOpenSwipeId: (id: string | null) => void;
 }
 
-const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params, ListIcon, colors, itemCounts, isCollapsed }: DroppableSidebarItemProps) => {
+const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params, ListIcon, colors, itemCounts, isCollapsed, openSwipeId, setOpenSwipeId }: DroppableSidebarItemProps) => {
   const {setNodeRef, isOver} = useDroppable({
     id: list.id,
     data: {
@@ -462,7 +477,6 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
     },
   });
 
-  const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [editName, setEditName] = useState(list.name);
   const [editColor, setEditColor] = useState(list.color);
@@ -474,125 +488,98 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
     }
   }, [settingsOpen, list.name, list.color]);
   
-  const [isPressing, setIsPressing] = useState(false);
-  const [pressPos, setPressPos] = useState({ x: 0, y: 0 });
-  const [progress, setProgress] = useState(0);
-  
-  const pressTimer = useRef<NodeJS.Timeout | null>(null);
-  const animTimer = useRef<NodeJS.Timeout | null>(null);
-  const showUITimer = useRef<NodeJS.Timeout | null>(null);
-  const wasLongPress = useRef(false);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    setPressPos({ x: e.clientX, y: e.clientY });
-    setProgress(0);
-    wasLongPress.current = false;
-
-    showUITimer.current = setTimeout(() => {
-      setIsPressing(true);
-      animTimer.current = setTimeout(() => {
-        setProgress(100);
-      }, 10);
-    }, 150); // Delay showing UI so regular clicks don't flash it
-
-    pressTimer.current = setTimeout(() => {
-      setIsPressing(false);
-      wasLongPress.current = true;
-      setMenuOpen(true);
-    }, 500);
-  };
-
-  const cancelPress = () => {
-    setIsPressing(false);
-    setProgress(0);
-    if (pressTimer.current) clearTimeout(pressTimer.current);
-    if (animTimer.current) clearTimeout(animTimer.current);
-    if (showUITimer.current) clearTimeout(showUITimer.current);
-  };
-
-  const handleMouseUp = () => {
-    cancelPress();
-  };
-
   const handleSave = () => {
     onUpdateList(list.id, { name: editName, color: editColor });
     setSettingsOpen(false);
   };
+
+  const x = useMotionValue(0);
+  const [dragProgress, setDragProgress] = useState(0);
+
+  useMotionValueEvent(x, "change", setDragProgress);
+
+  useEffect(() => {
+    if ((openSwipeId !== list.id || isCollapsed) && x.get() !== 0) {
+      animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG);
+    }
+  }, [openSwipeId, list.id, x, isCollapsed]);
+
+  const handleDragEnd = () => {
+    const currentX = x.get();
+    if (Math.abs(currentX) > POSITION_THRESHOLD) {
+      animate(
+        x,
+        currentX > 0 ? SNAP_POINTS.RIGHT : SNAP_POINTS.LEFT,
+        SPRING_CONFIG
+      );
+    } else {
+      animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG);
+    }
+  };
+
+  const showEdit = dragProgress < -40;
+  const showDelete = dragProgress < -80;
 
   return (
     <>
       <div 
         ref={setNodeRef} 
         className={cn(
-          "relative select-none",
+          "relative select-none overflow-hidden group",
           isOver && "ring-2 ring-blue-500 ring-offset-2"
         )}
       >
-        <div
-          onMouseDown={handleMouseDown}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={cancelPress}
-          onClickCapture={(e) => {
-            if (wasLongPress.current) {
-              e.stopPropagation();
-              e.preventDefault();
-              wasLongPress.current = false;
-            }
-          }}
-        >
-          <Item 
-              label={list.name}
-              icon={ListIcon}
-              color={list.color}
-              count={itemCounts?.listCounts?.[list.id] || 0}
-              onClick={() => router.push(`/lists/${list.id}`)}
-              active={params.listId === list.id}
-              isCollapsed={isCollapsed}
-          />
+        <div className="absolute top-0 bottom-0 right-0 flex items-center justify-end px-3 gap-x-2 bg-zinc-100 dark:bg-zinc-800/80 w-full z-0">
+           <motion.button 
+             animate={{ opacity: showEdit ? 1 : 0, scale: showEdit ? 1 : 0.5 }}
+             initial={{ opacity: 0, scale: 0.5 }}
+             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG); }}
+             className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
+           >
+             <Pencil className="h-4 w-4" />
+           </motion.button>
+           <motion.button 
+             animate={{ opacity: showDelete ? 1 : 0, scale: showDelete ? 1 : 0.5 }}
+             initial={{ opacity: 0, scale: 0.5 }}
+             onClick={(e) => { e.stopPropagation(); onDeleteList(list.id); animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG); }}
+             className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors"
+           >
+             <Trash2 className="h-4 w-4" />
+           </motion.button>
         </div>
 
-        {isPressing && (
-          <div 
-            className="fixed z-[999999] pointer-events-none"
-            style={{ left: pressPos.x - 15, top: pressPos.y + 15 }}
-          >
-            <div className="w-[30px] h-1.5 bg-neutral-200 dark:bg-neutral-800 rounded-full overflow-hidden shadow-sm border border-neutral-300 dark:border-neutral-700">
-              <div 
-                className="h-full bg-blue-500 rounded-full transition-all ease-linear"
-                style={{ 
-                  width: `${progress}%`, 
-                  transitionDuration: progress === 100 ? '350ms' : '0ms' 
-                }} 
-              />
-            </div>
-          </div>
-        )}
-
-        <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <div 
-              className="fixed pointer-events-none opacity-0" 
-              style={{ left: pressPos.x, top: pressPos.y, width: 1, height: 1 }} 
+        <motion.div
+          style={{ x }}
+          drag={!isCollapsed ? "x" : false}
+          dragConstraints={{ left: SNAP_POINTS.LEFT, right: SNAP_POINTS.RIGHT }}
+          dragElastic={0.05}
+          dragDirectionLock
+          dragMomentum={false}
+          onDragStart={() => setOpenSwipeId(list.id)}
+          onDragEnd={handleDragEnd}
+          whileDrag={{ scale: 0.98 }}
+          transition={SPRING_CONFIG}
+          className="relative z-10 bg-[#f8f9fa] dark:bg-[#1d1d1d] cursor-grab active:cursor-grabbing"
+        >
+          <div onClick={(e) => {
+             if (Math.abs(x.get()) > 5) {
+               e.preventDefault();
+               e.stopPropagation();
+               animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG);
+               return;
+             }
+             router.push(`/lists/${list.id}`)
+          }}>
+            <Item 
+                label={list.name}
+                icon={ListIcon}
+                color={list.color}
+                count={itemCounts?.listCounts?.[list.id] || 0}
+                active={params.listId === list.id}
+                isCollapsed={isCollapsed}
             />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-48" align="start" side="bottom">
-            <DropdownMenuItem onSelect={(e) => {
-              e.preventDefault(); // Prevent dropdown from closing immediately
-              setMenuOpen(false); // Close dropdown manually
-              setTimeout(() => setSettingsOpen(true), 10); // Safely open dialog
-            }}>
-              Edit List
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem 
-              onSelect={() => onDeleteList(list.id)}
-              className="text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-950/30"
-            >
-              Delete List
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          </div>
+        </motion.div>
       </div>
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
