@@ -1,7 +1,14 @@
 import { Toaster } from "@/components/ui/sonner";
 import { Inter } from 'next/font/google'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import localFont from 'next/font/local'
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
 
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { NextAuthSessionProvider } from '@/components/providers/session-provider'
