@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { CustomDatePicker } from "./custom-date-picker";
+import { motion } from "framer-motion";
 
 export interface SharedItemProps {
   id: string;
@@ -198,7 +199,10 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
               )}
               style={item.listColor ? { borderColor: item.listColor } : undefined}
             >
-              <div 
+              <motion.div 
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className={cn(
                   "h-4 w-4 rounded-full",
                   !item.listColor && "bg-zinc-900 dark:bg-zinc-100"
