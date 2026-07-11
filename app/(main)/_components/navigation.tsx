@@ -58,16 +58,16 @@ const SNAP_POINTS = {
     RIGHT: 0,
 };
 const POSITION_THRESHOLD = 48;
-const SPRING_CONFIG = { type: "spring", duration: 0.5, bounce: 0 };
+const SPRING_CONFIG: any = { type: "spring", duration: 0.5, bounce: 0 };
 
 import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
 
 const ListsSkeleton = () => (
-  <div className="flex flex-col w-full opacity-60 px-3">
+  <div className="flex flex-col w-full opacity-60">
     {[...Array(3)].map((_, i) => (
-      <div key={i} className="flex items-center gap-x-2 py-[3px]">
-        <div className="h-[22px] w-[22px] rounded-sm bg-zinc-200 dark:bg-zinc-800 shrink-0" />
-        <div className="h-4 w-2/3 bg-zinc-200 dark:bg-zinc-800 rounded-md" />
+      <div key={i} className="flex items-center gap-x-2 py-2 pr-6 pl-[24px]">
+        <div className="h-[24px] w-[24px] rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+        <div className="h-[18px] w-1/2 bg-zinc-200 dark:bg-zinc-800 rounded-sm" />
       </div>
     ))}
   </div>
@@ -500,7 +500,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
 
   useEffect(() => {
     if ((openSwipeId !== list.id || isCollapsed) && x.get() !== 0) {
-      animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG);
+      animate(x, SNAP_POINTS.CENTER as any, SPRING_CONFIG);
     }
   }, [openSwipeId, list.id, x, isCollapsed]);
 
@@ -509,11 +509,11 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
     if (Math.abs(currentX) > POSITION_THRESHOLD) {
       animate(
         x,
-        currentX > 0 ? SNAP_POINTS.RIGHT : SNAP_POINTS.LEFT,
+        (currentX > 0 ? SNAP_POINTS.RIGHT : SNAP_POINTS.LEFT) as any,
         SPRING_CONFIG
       );
     } else {
-      animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG);
+      animate(x, SNAP_POINTS.CENTER as any, SPRING_CONFIG);
     }
   };
 
@@ -533,7 +533,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
            <motion.button 
              animate={{ opacity: showEdit ? 1 : 0, scale: showEdit ? 1 : 0.5 }}
              initial={{ opacity: 0, scale: 0.5 }}
-             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG); }}
+             onClick={(e) => { e.stopPropagation(); setSettingsOpen(true); animate(x, SNAP_POINTS.CENTER as any, SPRING_CONFIG); }}
              className="h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center hover:bg-blue-200 dark:hover:bg-blue-800/50 transition-colors"
            >
              <Pencil className="h-4 w-4" />
@@ -541,7 +541,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
            <motion.button 
              animate={{ opacity: showDelete ? 1 : 0, scale: showDelete ? 1 : 0.5 }}
              initial={{ opacity: 0, scale: 0.5 }}
-             onClick={(e) => { e.stopPropagation(); onDeleteList(list.id); animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG); }}
+             onClick={(e) => { e.stopPropagation(); onDeleteList(list.id); animate(x, SNAP_POINTS.CENTER as any, SPRING_CONFIG); }}
              className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-800/50 transition-colors"
            >
              <Trash2 className="h-4 w-4" />
@@ -565,7 +565,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
              if (Math.abs(x.get()) > 5) {
                e.preventDefault();
                e.stopPropagation();
-               animate(x, SNAP_POINTS.CENTER, SPRING_CONFIG);
+               animate(x, SNAP_POINTS.CENTER as any, SPRING_CONFIG);
                return;
              }
              router.push(`/lists/${list.id}`)
