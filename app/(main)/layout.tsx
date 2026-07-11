@@ -30,7 +30,7 @@ const MainLayout = ({
   return (
     <div className="h-full flex dark:bg-[#191919]">
       <Navigation />
-      <main className="flex-1 h-full overflow-hidden flex flex-col">
+      <main className="flex-1 h-full overflow-hidden flex flex-col pt-14 md:pt-0">
         <SearchCommand />
         <SettingsModal />
         {children}
