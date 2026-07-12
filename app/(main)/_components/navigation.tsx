@@ -114,6 +114,11 @@ export const Navigation = () => {
   const isResizingRef = useRef(false);
   const sidebarRef = useRef<ElementRef<"aside">>(null);
   const navbarRef = useRef<ElementRef<"div">>(null);
+  
+  // Track intermediate width adjustments to show skeletons smoothly
+  const isIntermediateRef = useRef(false);
+  const [isIntermediate, setIsIntermediate] = useState(false);
+  
   const [isResetting, setIsResetting] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(isMobile);
   const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
@@ -194,14 +199,22 @@ export const Navigation = () => {
     let newWidth = event.clientX;
 
     if (newWidth < 260) {
-      setIsCollapsed(true);
       if (newWidth < 52) newWidth = 52;
+      // Change the skeleton visual state midway (156 is between 52 and 260)
+      setIsCollapsed(newWidth < 156); 
     } else {
       setIsCollapsed(false);
       if (!isMobile && Math.abs(newWidth - 315) < 15) {
         newWidth = 315;
       }
       if (newWidth > 480) newWidth = 480;
+    }
+
+    // Determine if we're in the limbo state between compact and min-width
+    const isCurrentlyIntermediate = newWidth > 52 && newWidth < 260;
+    if (isCurrentlyIntermediate !== isIntermediateRef.current) {
+      isIntermediateRef.current = isCurrentlyIntermediate;
+      setIsIntermediate(isCurrentlyIntermediate);
     }
 
     if (sidebarRef.current && navbarRef.current) {
@@ -216,6 +229,10 @@ export const Navigation = () => {
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
 
+    // Reset intermediate tracking
+    isIntermediateRef.current = false;
+    setIsIntermediate(false);
+
     if (sidebarRef.current && navbarRef.current) {
       const currentWidth = parseInt(sidebarRef.current.style.width, 10);
       let targetWidth = currentWidth;
@@ -223,7 +240,7 @@ export const Navigation = () => {
       let needsAnimation = false;
 
       if (currentWidth < 260) {
-        if (currentWidth !== 52) needsAnimation = true;
+        if (currentWidth > 52) needsAnimation = true;
         targetWidth = 52;
         setIsCollapsed(true);
       } else {
@@ -348,7 +365,9 @@ export const Navigation = () => {
             </div>
           )}
         </div>
-        {isResetting ? (
+        
+        {/* Conditional skeleton rendering check handles both resetting snaps & active intermediate dragging */}
+        {isResetting || isIntermediate ? (
           <SidebarTransitionSkeleton isCollapsed={isCollapsed} />
         ) : (
           <div className="flex-1 w-full flex flex-col overflow-hidden">
@@ -444,7 +463,6 @@ export const Navigation = () => {
             )}
             <div className="mt-8 flex-1 overflow-y-auto no-scrollbar">
               {!isCollapsed && <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>}
-              {/* NOTE: isCollapsed is now passed to ListsSkeleton */}
               <SkeletonReveal isLoading={listLoading} skeleton={<ListsSkeleton isCollapsed={isCollapsed} />} className="pb-4 w-full">
                 <div className="space-y-0">
                   {lists.map((list) => (
@@ -536,9 +554,9 @@ interface DroppableSidebarItemProps {
   list: List;
   onUpdateList: (id: string, values: Partial<{ name: string; color: string }>) => Promise<void>;
   onDeleteList: (id: string) => Promise<void>;
-  router: any; // NextRouter
-  params: any; // useParams
-  ListIcon: any; // LucideIcon
+  router: any; 
+  params: any; 
+  ListIcon: any; 
   colors: string[];
   itemCounts: any;
   isCollapsed?: boolean;
@@ -595,8 +613,9 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
     }
   };
 
-  const showEdit = dragProgress < -40;
-  const showDelete = dragProgress < -80;
+  // Swapped: Delete appears first (-40), Edit appears second (-80)
+  const showDelete = dragProgress < -40;
+  const showEdit = dragProgress < -80;
 
   return (
     <>
