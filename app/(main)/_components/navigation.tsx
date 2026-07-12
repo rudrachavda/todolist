@@ -405,7 +405,7 @@ export const Navigation = () => {
             <Item icon={CheckCircle2} label="Completed" isCollapsed={true} onClick={() => router.push("/completed")} />
           </div>
         )}
-        <div className="mt-8 flex-1 overflow-y-auto">
+        <div className="mt-8 flex-1 overflow-y-auto no-scrollbar">
           {!isCollapsed && <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>}
           <SkeletonReveal isLoading={listLoading} skeleton={<ListsSkeleton />} className="pb-4">
             <div className="space-y-0">

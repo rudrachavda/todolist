@@ -72,7 +72,9 @@ export const Item = ({
       onContextMenu={onContextMenu}
       role="button"
       style={{
-        paddingLeft: isCollapsed ? "0px" : (level ? `${(level * 12) + 24}px` : "24px")
+        paddingLeft: isCollapsed ? "0px" : (level ? `${(level * 12) + 24}px` : "24px"),
+        paddingRight: isCollapsed ? "0px" : undefined,
+        justifyContent: isCollapsed ? "center" : undefined
       }}
       className={cn(
         "group min-h-[27px] text-sm font-medium tracking-[0.005em] leading-snug py-2 pr-6 w-full hover:bg-zinc-200/60 dark:hover:bg-zinc-800/50 flex items-center text-[#646464] dark:text-[#a1a1a1] transition-colors rounded-none",

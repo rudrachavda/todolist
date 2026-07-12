@@ -13,7 +13,7 @@ import {
   DndContext, 
   closestCenter,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -62,7 +62,7 @@ const ListIdPage = () => {
   const list = lists.find(l => l.id === listId);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
         distance: 5,
       },
@@ -274,7 +274,7 @@ const ListIdPage = () => {
         >
           <SortableContext 
             items={items.map(item => item.id)}
-            strategy={verticalListSortingStrategy}
+            strategy={() => null}
           >
             {items.map((item, index) => (
               <DraggableItem 
@@ -319,17 +319,6 @@ const ListIdPage = () => {
             </form>
           )}
         </div>
-        <DragOverlay>
-          {activeItem ? (
-            <DraggableItem
-              item={{ ...activeItem, listColor: list?.color, listName: list?.name }}
-              onUpdateItem={handleUpdateItem}
-              onDeleteItem={handleDeleteItem}
-              onToggleCompletion={handleToggleCompletion}
-              isOverlay
-            />
-          ) : null}
-        </DragOverlay>
       </DndContext>
       </SkeletonReveal>
     </div>

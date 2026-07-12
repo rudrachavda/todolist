@@ -90,8 +90,6 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
   };
   
   const style = {
-    // We intentionally ignore `transform` here so items never physically shift during drag!
-    // The visual movement is handled entirely by the DragOverlay, while the list remains static.
     transition,
     zIndex: isDragging ? 0 : 'auto',
   };
@@ -103,6 +101,8 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
   const dropIndicator = isOverItem && active?.id !== item.id
     ? activeIndex > overIndex ? "top" : "bottom"
     : null;
+
+
 
   const handleQuickDate = (type: string) => {
     const now = new Date();
@@ -173,8 +173,7 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
         "group flex items-start gap-x-3 py-3 border-b-[0.5px] border-solid border-secondary/50 dark:border-secondary/30 last:border-0 relative outline-none",
         "transition-colors duration-200 ease-in-out px-8",
         "focus:bg-zinc-100 dark:focus:bg-zinc-800/50 focus:rounded-none focus:border-transparent",
-        isDragging && !isOverlay && "bg-zinc-100 dark:bg-zinc-800/50 rounded-none opacity-60 border-transparent",
-        isOverlay && "bg-white/70 dark:bg-[#1d1d1d]/70 backdrop-blur-md shadow-xl scale-[1.02] border-transparent"
+        isDragging && "opacity-50 bg-secondary/10"
       )}
     >
       {dropIndicator === 'top' && (
@@ -226,7 +225,6 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
               item.isCompleted && "text-[#a1a1a1] dark:text-[#646464]"
             )}
             onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-            onPointerDown={(e) => e.stopPropagation()}
           >
             {item.text}
           </p>
@@ -234,7 +232,6 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
             <p 
               className="text-xs tracking-[0.005em] leading-normal text-[#646464] dark:text-zinc-400 whitespace-pre-wrap break-words mt-0.5 p-0 m-0 cursor-text self-start max-w-full"
               onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-              onPointerDown={(e) => e.stopPropagation()}
             >
               {item.description}
             </p>
@@ -244,7 +241,6 @@ export const DraggableItem = ({ item, onToggleCompletion, onDeleteItem, onUpdate
               <div 
                 className="flex items-center gap-x-2 cursor-pointer"
                 onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
-                onPointerDown={(e) => e.stopPropagation()}
               >
                 <div className="inline-flex items-center gap-x-1.5 rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
                   <CalendarIcon className="h-3 w-3 shrink-0" />

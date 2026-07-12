@@ -24,7 +24,15 @@ export const UserItem = ({ isCollapsed }: { isCollapsed?: boolean }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <div role="button" className={cn("flex items-center text-sm px-6 py-3 w-full hover:bg-primary/5", isCollapsed && "justify-center px-0")}>
+        <div 
+          role="button" 
+          style={{
+            paddingLeft: isCollapsed ? "0px" : undefined,
+            paddingRight: isCollapsed ? "0px" : undefined,
+            justifyContent: isCollapsed ? "center" : undefined
+          }}
+          className={cn("flex items-center text-sm px-6 py-3 w-full hover:bg-primary/5", isCollapsed && "justify-center px-0")}
+        >
           <div className={cn("gap-x-2 flex items-center max-w-[150px]", isCollapsed && "max-w-none")}>
             <Avatar className="h-6 w-6">
               <AvatarImage src={user?.image || ""} />

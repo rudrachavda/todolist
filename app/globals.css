@@ -95,7 +95,7 @@
   html,
   body,
   :root {
-    height: 100%;
+    height: 100dvh;
   }
 
   * {
@@ -151,11 +151,12 @@
   --reveal-ease: ease-in-out;
 }
 
-.t-skel { position: relative; }
+.t-skel { 
+  display: grid; 
+}
 .t-skel-skeleton,
 .t-skel-content {
-  position: absolute;
-  inset: 0;
+  grid-area: 1 / 1;
 }
 
 .t-skel-skeleton {
