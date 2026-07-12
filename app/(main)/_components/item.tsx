@@ -83,32 +83,31 @@ export const Item = ({
         isCollapsed && "justify-center pr-0"
       )}
     >
-      {documentIcon ? (
-        <div className={cn("shrink-0 text-[18px]", !isCollapsed && "mr-2")}>
-          {documentIcon}
-        </div>
-      ) : color ? (
-        <div 
-          className={cn(
-            "shrink-0 h-[24px] w-[24px] rounded-full flex items-center justify-center shadow-sm", 
-            !isCollapsed && "mr-2"
-          )}
-          style={{ backgroundColor: color }}
-        >
+      <div className={cn("shrink-0 flex items-center justify-center h-[24px] w-[24px]", !isCollapsed && "mr-2")}>
+        {documentIcon ? (
+          <div className="text-[18px]">
+            {documentIcon}
+          </div>
+        ) : color ? (
+          <div 
+            className="h-[24px] w-[24px] rounded-full flex items-center justify-center shadow-sm"
+            style={{ backgroundColor: color }}
+          >
+            <Icon
+              className="shrink-0 h-[14px] w-[14px] text-white drop-shadow-sm"
+              strokeWidth={2.5}
+            />
+          </div>
+        ) : (
           <Icon
-            className="shrink-0 h-[14px] w-[14px] text-white drop-shadow-sm"
-            strokeWidth={2.5}
+            className="shrink-0 h-[18px] w-[18px]"
+            style={{ color: (active && activeVariant === "blue") ? 'white' : undefined }}
           />
-        </div>
-      ) : (
-        <Icon
-          className={cn("shrink-0 h-[18px] w-[18px]", !isCollapsed && "mr-2")}
-          style={{ color: (active && activeVariant === "blue") ? 'white' : undefined }}
-        />
-      )}
+        )}
+      </div>
       {!isCollapsed && (
         <span 
-          className={cn("truncate", color ? "text-foreground dark:text-zinc-100" : "")}
+          className={cn("truncate min-w-0 flex-1", color ? "text-foreground dark:text-zinc-100" : "")}
           style={{ color: (active && activeVariant === "blue") ? 'white' : undefined }}
         >
           {label}

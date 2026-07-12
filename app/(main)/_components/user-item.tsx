@@ -33,17 +33,17 @@ export const UserItem = ({ isCollapsed }: { isCollapsed?: boolean }) => {
           }}
           className={cn("flex items-center text-sm px-6 py-3 w-full hover:bg-primary/5", isCollapsed && "justify-center px-0")}
         >
-          <div className={cn("gap-x-2 flex items-center max-w-[150px]", isCollapsed && "max-w-none")}>
-            <Avatar className="h-6 w-6">
+          <div className={cn("gap-x-2 flex items-center min-w-0", !isCollapsed && "flex-1")}>
+            <Avatar className="h-6 w-6 shrink-0">
               <AvatarImage src={user?.image || ""} />
             </Avatar>
             {!isCollapsed && (
-              <span className="text-start font-medium line-clamp-1">
+              <span className="text-start font-medium truncate min-w-0 flex-1">
                 {user?.name}&apos;s Reminders
               </span>
             )}
           </div>
-          {!isCollapsed && <ChevronsLeftRight className="rotate-90 ml-2 text-muted-foreground h-4 w-4" />}
+          {!isCollapsed && <ChevronsLeftRight className="rotate-90 ml-2 text-muted-foreground h-4 w-4 shrink-0" />}
         </div>
       </DropdownMenuTrigger>
       <DropdownMenuContent

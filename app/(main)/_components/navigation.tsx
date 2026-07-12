@@ -61,17 +61,45 @@ const POSITION_THRESHOLD = 48;
 const SPRING_CONFIG: any = { type: "spring", duration: 0.5, bounce: 0 };
 
 import { SkeletonReveal } from "@/components/ui/skeleton-reveal";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const ListsSkeleton = () => (
-  <div className="flex flex-col w-full opacity-60">
+const ListsSkeleton = ({ isCollapsed }: { isCollapsed?: boolean }) => (
+  <div className={cn("flex flex-col w-full opacity-60", isCollapsed && "items-center")}>
     {[...Array(3)].map((_, i) => (
-      <div key={i} className="flex items-center gap-x-2 py-2 pr-6 pl-[24px]">
+      <div key={i} className={cn("flex items-center py-2", isCollapsed ? "justify-center w-full" : "gap-x-2 pr-6 pl-[24px]")}>
         <div className="h-[24px] w-[24px] rounded-full bg-zinc-200 dark:bg-zinc-800 shrink-0" />
-        <div className="h-[18px] w-1/2 bg-zinc-200 dark:bg-zinc-800 rounded-sm" />
+        {!isCollapsed && (
+          <div className="h-[18px] w-1/2 bg-zinc-200 dark:bg-zinc-800 rounded-sm" />
+        )}
       </div>
     ))}
   </div>
 );
+
+const SidebarTransitionSkeleton = ({ isCollapsed }: { isCollapsed: boolean }) => {
+  if (isCollapsed) {
+    return (
+      <div className="flex flex-col items-center w-full gap-y-4 pt-6 flex-1">
+        <Skeleton className="h-6 w-6 rounded-md" />
+        <Skeleton className="h-6 w-6 rounded-md" />
+        <Skeleton className="h-6 w-6 rounded-md" />
+        <Skeleton className="h-6 w-6 rounded-md" />
+        <Skeleton className="h-8 w-8 rounded-full mt-auto mb-6" />
+      </div>
+    );
+  }
+  return (
+    <div className="w-full flex flex-col gap-y-4 px-6 pt-6 flex-1">
+      <Skeleton className="h-6 w-full" />
+      <Skeleton className="h-6 w-[80%]" />
+      <Skeleton className="h-6 w-[90%]" />
+      <Skeleton className="h-6 w-[60%]" />
+      <Skeleton className="h-6 w-[70%]" />
+      <Skeleton className="h-6 w-[50%]" />
+      <Skeleton className="h-10 w-[80%] mt-auto mb-6" />
+    </div>
+  );
+};
 
 export const Navigation = () => {
   const router = useRouter();
@@ -165,9 +193,9 @@ export const Navigation = () => {
     if (!isResizingRef.current) return;
     let newWidth = event.clientX;
 
-    if (newWidth < 150) {
+    if (newWidth < 260) {
       setIsCollapsed(true);
-      if (newWidth < 72) newWidth = 72;
+      if (newWidth < 52) newWidth = 52;
     } else {
       setIsCollapsed(false);
       if (!isMobile && Math.abs(newWidth - 315) < 15) {
@@ -192,14 +220,19 @@ export const Navigation = () => {
       const currentWidth = parseInt(sidebarRef.current.style.width, 10);
       let targetWidth = currentWidth;
       
-      if (currentWidth < 150) {
-        targetWidth = 72;
+      let needsAnimation = false;
+
+      if (currentWidth < 260) {
+        if (currentWidth !== 52) needsAnimation = true;
+        targetWidth = 52;
         setIsCollapsed(true);
-      } else if (currentWidth < 240) {
-        targetWidth = 240;
-        setIsCollapsed(false);
       } else {
         setIsCollapsed(false);
+      }
+
+      if (needsAnimation) {
+        setIsResetting(true);
+        setTimeout(() => setIsResetting(false), 300);
       }
 
       sidebarRef.current.style.width = `${targetWidth}px`;
@@ -214,17 +247,17 @@ export const Navigation = () => {
       setIsCollapsed(false);
       setIsResetting(true);
 
-      sidebarRef.current.style.width = isMobile ? "100%" : "315px";
+      sidebarRef.current.style.width = isMobile ? "100%" : "260px";
       navbarRef.current.style.setProperty(
         "width",
-        isMobile ? "0" : "calc(100% - 315px)"
+        isMobile ? "0" : "calc(100% - 260px)"
       );
       navbarRef.current.style.setProperty(
         "left",
-        isMobile ? "100%" : "315px"
+        isMobile ? "100%" : "260px"
       );
       if (!isMobile) {
-        localStorage.setItem("sidebarWidth", "315");
+        localStorage.setItem("sidebarWidth", "260");
       }
       setTimeout(() => setIsResetting(false), 300);
     }
@@ -235,9 +268,9 @@ export const Navigation = () => {
       setIsCollapsed(true);
       setIsResetting(true);
 
-      sidebarRef.current.style.width = isMobile ? "0" : "72px";
-      navbarRef.current.style.setProperty("width", isMobile ? "100%" : "calc(100% - 72px)");
-      navbarRef.current.style.setProperty("left", isMobile ? "0" : "72px");
+      sidebarRef.current.style.width = isMobile ? "0" : "52px";
+      navbarRef.current.style.setProperty("width", isMobile ? "100%" : "calc(100% - 52px)");
+      navbarRef.current.style.setProperty("left", isMobile ? "0" : "52px");
       setTimeout(() => setIsResetting(false), 300);
     }
   }
@@ -282,7 +315,7 @@ export const Navigation = () => {
       <aside
         ref={sidebarRef}
         className={cn(
-          "group/sidebar h-full select-none bg-secondary dark:bg-[#121212] overflow-y-auto relative flex w-[315px] flex-col z-[99999]",
+          "group/sidebar h-full select-none bg-secondary dark:bg-[#121212] overflow-y-auto overflow-x-hidden relative flex w-[260px] flex-col z-[99999]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "w-0"
         )}
@@ -297,7 +330,7 @@ export const Navigation = () => {
         >
           <ChevronsLeft className="h-6 w-6" />
         </div>
-        <div className="flex items-center px-4 py-3 min-h-[50px] mb-2">
+        <div className={cn("flex items-center py-3 min-h-[50px] mb-2", isCollapsed ? "px-0 justify-center w-full" : "px-4")}>
           {isCollapsed ? (
             <div 
               role="button" 
@@ -308,142 +341,149 @@ export const Navigation = () => {
               <Image src="/logo-dark.svg" alt="Logo" width={22} height={22} className="hidden dark:block object-contain" />
             </div>
           ) : (
-            <div className="flex items-center gap-x-2 w-full">
+            <div className="flex items-center gap-x-2 w-full flex-1 min-w-0">
               <Image src="/logo.svg" alt="Logo" width={22} height={22} className="dark:hidden object-contain" />
               <Image src="/logo-dark.svg" alt="Logo" width={22} height={22} className="hidden dark:block object-contain" />
-              <span className="font-bold text-lg tracking-tight">Reminders</span>
+              <span className="font-bold text-lg tracking-tight truncate min-w-0 flex-1">Reminders</span>
             </div>
           )}
         </div>
-        <div>
-          <Item
-            label="Search"
-            icon={Search}
-            isSearch
-            onClick={search.onOpen}
-            active={search.isOpen}
-            activeVariant="gray"
-            isCollapsed={isCollapsed}
-          />
-          <Item
-            label="Settings"
-            icon={Settings}
-            onClick={settings.onOpen}
-            active={settings.isOpen}
-            activeVariant="gray"
-            isCollapsed={isCollapsed}
-          />
-        </div>
-        {!isCollapsed ? (
-          <div className="mt-4 px-3 grid grid-cols-2 gap-2">
-              <div 
-                  onClick={() => router.push("/today")}
-                  className={cn(
-                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                    "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
-                  )}
-              >
-                  <div className="flex justify-between items-start">
-                      <div className="text-white drop-shadow-sm">
-                          <Calendar className="h-6 w-6" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.today}</span>
-                  </div>
-                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Today</span>
-              </div>
-              <div 
-                  onClick={() => router.push("/scheduled")}
-                  className={cn(
-                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                    "bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700"
-                  )}
-              >
-                  <div className="flex justify-between items-start">
-                      <div className="text-white drop-shadow-sm">
-                          <Clock className="h-6 w-6" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.scheduled}</span>
-                  </div>
-                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Scheduled</span>
-              </div>
-              <div 
-                  onClick={() => router.push("/all")}
-                  className={cn(
-                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                    "bg-gradient-to-br from-zinc-600 to-zinc-800 hover:from-zinc-700 hover:to-zinc-900"
-                  )}
-              >
-                  <div className="flex justify-between items-start">
-                      <div className="text-white drop-shadow-sm">
-                          <Inbox className="h-6 w-6" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.all}</span>
-                  </div>
-                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">All</span>
-              </div>
-              <div 
-                  onClick={() => router.push("/completed")}
-                  className={cn(
-                    "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
-                    "bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700"
-                  )}
-              >
-                  <div className="flex justify-between items-start">
-                      <div className="text-white drop-shadow-sm">
-                          <CheckCircle2 className="h-6 w-6" strokeWidth={2.5} />
-                      </div>
-                      <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.completed}</span>
-                  </div>
-                  <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Completed</span>
-              </div>
-          </div>
+        {isResetting ? (
+          <SidebarTransitionSkeleton isCollapsed={isCollapsed} />
         ) : (
-          <div className="mt-4 flex flex-col gap-1 w-full items-center">
-            <Item icon={Calendar} label="Today" isCollapsed={true} onClick={() => router.push("/today")} />
-            <Item icon={Clock} label="Scheduled" isCollapsed={true} onClick={() => router.push("/scheduled")} />
-            <Item icon={Inbox} label="All" isCollapsed={true} onClick={() => router.push("/all")} />
-            <Item icon={CheckCircle2} label="Completed" isCollapsed={true} onClick={() => router.push("/completed")} />
+          <div className="flex-1 w-full flex flex-col overflow-hidden">
+            <div>
+              <Item
+                label="Search"
+                icon={Search}
+                isSearch
+                onClick={search.onOpen}
+                active={search.isOpen}
+                activeVariant="gray"
+                isCollapsed={isCollapsed}
+              />
+              <Item
+                label="Settings"
+                icon={Settings}
+                onClick={settings.onOpen}
+                active={settings.isOpen}
+                activeVariant="gray"
+                isCollapsed={isCollapsed}
+              />
+            </div>
+            {!isCollapsed ? (
+              <div className="mt-4 px-3 grid grid-cols-2 gap-2">
+                  <div 
+                      onClick={() => router.push("/today")}
+                      className={cn(
+                        "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                        "bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700"
+                      )}
+                  >
+                      <div className="flex justify-between items-start">
+                          <div className="text-white drop-shadow-sm">
+                              <Calendar className="h-6 w-6" strokeWidth={2.5} />
+                          </div>
+                          <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.today}</span>
+                      </div>
+                      <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Today</span>
+                  </div>
+                  <div 
+                      onClick={() => router.push("/scheduled")}
+                      className={cn(
+                        "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                        "bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700"
+                      )}
+                  >
+                      <div className="flex justify-between items-start">
+                          <div className="text-white drop-shadow-sm">
+                              <Clock className="h-6 w-6" strokeWidth={2.5} />
+                          </div>
+                          <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.scheduled}</span>
+                      </div>
+                      <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Scheduled</span>
+                  </div>
+                  <div 
+                      onClick={() => router.push("/all")}
+                      className={cn(
+                        "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                        "bg-gradient-to-br from-zinc-600 to-zinc-800 hover:from-zinc-700 hover:to-zinc-900"
+                      )}
+                  >
+                      <div className="flex justify-between items-start">
+                          <div className="text-white drop-shadow-sm">
+                              <Inbox className="h-6 w-6" strokeWidth={2.5} />
+                          </div>
+                          <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.all}</span>
+                      </div>
+                      <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">All</span>
+                  </div>
+                  <div 
+                      onClick={() => router.push("/completed")}
+                      className={cn(
+                        "p-3 rounded-xl flex flex-col cursor-pointer transition shadow-sm",
+                        "bg-gradient-to-br from-slate-400 to-slate-600 hover:from-slate-500 hover:to-slate-700"
+                      )}
+                  >
+                      <div className="flex justify-between items-start">
+                          <div className="text-white drop-shadow-sm">
+                              <CheckCircle2 className="h-6 w-6" strokeWidth={2.5} />
+                          </div>
+                          <span className="text-2xl font-bold leading-none text-white drop-shadow-sm">{itemCounts.completed}</span>
+                      </div>
+                      <span className="text-[13px] font-semibold text-white drop-shadow-sm mt-3">Completed</span>
+                  </div>
+              </div>
+            ) : (
+              <div className="mt-4">
+                <Item icon={Calendar} label="Today" isCollapsed={true} onClick={() => router.push("/today")} />
+                <Item icon={Clock} label="Scheduled" isCollapsed={true} onClick={() => router.push("/scheduled")} />
+                <Item icon={Inbox} label="All" isCollapsed={true} onClick={() => router.push("/all")} />
+                <Item icon={CheckCircle2} label="Completed" isCollapsed={true} onClick={() => router.push("/completed")} />
+              </div>
+            )}
+            <div className="mt-8 flex-1 overflow-y-auto no-scrollbar">
+              {!isCollapsed && <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>}
+              {/* NOTE: isCollapsed is now passed to ListsSkeleton */}
+              <SkeletonReveal isLoading={listLoading} skeleton={<ListsSkeleton isCollapsed={isCollapsed} />} className="pb-4 w-full">
+                <div className="space-y-0">
+                  {lists.map((list) => (
+                      <DroppableSidebarItem 
+                          key={list.id}
+                          list={list}
+                          onUpdateList={onUpdateList}
+                          onDeleteList={onDeleteList}
+                          router={router}
+                          params={params}
+                          ListIcon={ListIcon}
+                          colors={colors}
+                          itemCounts={itemCounts}
+                          isCollapsed={isCollapsed}
+                          openSwipeId={openSwipeId}
+                          setOpenSwipeId={setOpenSwipeId}
+                      />
+                  ))}
+                  <Item
+                      onClick={handleCreateList}
+                      icon={Plus}
+                      label="Add List"
+                      isCollapsed={isCollapsed}
+                  />
+                  <div className={cn("pt-4 mt-4 border-t border-secondary-foreground/10", isCollapsed && "border-transparent")}>
+                      <DroppableTrashItem
+                          router={router}
+                          pathname={pathname}
+                          isCollapsed={isCollapsed}
+                      />
+                  </div>
+                </div>
+              </SkeletonReveal>
+            </div>
+            <div className={cn("mt-auto border-t border-secondary-foreground/10", isCollapsed && "border-transparent")}>
+              <UserItem isCollapsed={isCollapsed} />
+            </div>
           </div>
         )}
-        <div className="mt-8 flex-1 overflow-y-auto no-scrollbar">
-          {!isCollapsed && <h3 className="px-6 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">My Lists</h3>}
-          <SkeletonReveal isLoading={listLoading} skeleton={<ListsSkeleton />} className="pb-4">
-            <div className="space-y-0">
-              {lists.map((list) => (
-                  <DroppableSidebarItem 
-                      key={list.id}
-                      list={list}
-                      onUpdateList={onUpdateList}
-                      onDeleteList={onDeleteList}
-                      router={router}
-                      params={params}
-                      ListIcon={ListIcon}
-                      colors={colors}
-                      itemCounts={itemCounts}
-                      isCollapsed={isCollapsed}
-                      openSwipeId={openSwipeId}
-                      setOpenSwipeId={setOpenSwipeId}
-                  />
-              ))}
-              <Item
-                  onClick={handleCreateList}
-                  icon={Plus}
-                  label="Add List"
-                  isCollapsed={isCollapsed}
-              />
-              <div className="pt-4 mt-4 border-t border-secondary-foreground/10">
-                  <DroppableTrashItem
-                      router={router}
-                      pathname={pathname}
-                      isCollapsed={isCollapsed}
-                  />
-              </div>
-            </div>
-          </SkeletonReveal>
-        </div>
-        <div className="mt-auto border-t border-secondary-foreground/10">
-          <UserItem isCollapsed={isCollapsed} />
-        </div>
         <div
           onMouseDown={handleMouseDown}
           onClick={resetWidth}
@@ -453,7 +493,7 @@ export const Navigation = () => {
       <div
         ref={navbarRef}
         className={cn(
-          "absolute top-0 z-[99999] left-[315px] w-[calc(100%-315px)]",
+          "absolute top-0 z-[99999] left-[260px] w-[calc(100%-260px)]",
           isResetting && "transition-all ease-in-out duration-300",
           isMobile && "left-0 w-full"
         )}
@@ -563,7 +603,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
       <div 
         ref={setNodeRef} 
         className={cn(
-          "relative select-none overflow-hidden group",
+          "relative select-none overflow-hidden group w-full",
           isOver && "ring-2 ring-blue-500 ring-offset-2"
         )}
       >
@@ -597,7 +637,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
           onDragEnd={handleDragEnd}
           whileDrag={{ scale: 0.98 }}
           transition={SPRING_CONFIG}
-          className="relative z-10 bg-secondary dark:bg-[#121212] cursor-grab active:cursor-grabbing"
+          className="relative z-10 bg-secondary dark:bg-[#121212] cursor-grab active:cursor-grabbing w-full"
         >
           <div onClick={(e) => {
              if (Math.abs(x.get()) > 5) {
@@ -607,7 +647,7 @@ const DroppableSidebarItem = ({ list, onUpdateList, onDeleteList, router, params
                return;
              }
              router.push(`/lists/${list.id}`)
-          }}>
+          }} className="w-full">
             <Item 
                 label={list.name}
                 icon={ListIcon}
@@ -673,6 +713,7 @@ const DroppableTrashItem = ({ router, pathname, isCollapsed }: { router: any, pa
 
   return (
     <div ref={setNodeRef} className={cn(
+      "w-full",
       isOver && "ring-2 ring-red-500 ring-offset-2 rounded-sm"
     )}>
       <Item 
